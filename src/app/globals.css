@@ -82,10 +82,12 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --party-gradient: linear-gradient(
-    135deg,
-    oklch(0.72 0.19 340) 0%,
-    oklch(0.68 0.2 305) 45%,
-    oklch(0.75 0.17 55) 100%
+    150deg,
+    oklch(0.7 0.2 355) 0%,
+    oklch(0.66 0.21 325) 30%,
+    oklch(0.62 0.22 295) 55%,
+    oklch(0.7 0.19 265) 75%,
+    oklch(0.78 0.17 60) 100%
   );
 }
 
@@ -122,10 +124,12 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   --party-gradient: linear-gradient(
-    135deg,
-    oklch(0.4 0.14 340) 0%,
-    oklch(0.32 0.12 305) 45%,
-    oklch(0.42 0.12 55) 100%
+    150deg,
+    oklch(0.42 0.15 355) 0%,
+    oklch(0.38 0.15 325) 30%,
+    oklch(0.34 0.14 295) 55%,
+    oklch(0.4 0.13 265) 75%,
+    oklch(0.46 0.12 60) 100%
   );
 }
 
@@ -150,5 +154,18 @@
   }
   .text-balance {
     text-wrap: balance;
+  }
+  .glass-card {
+    background: color-mix(in oklch, white 92%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+      0 1px 2px oklch(0 0 0 / 0.04),
+      0 20px 40px -12px oklch(0.3 0.1 320 / 0.35);
+  }
+  .shadow-party {
+    box-shadow:
+      0 1px 2px oklch(0 0 0 / 0.06),
+      0 12px 28px -8px oklch(0.3 0.15 340 / 0.4);
   }
 }

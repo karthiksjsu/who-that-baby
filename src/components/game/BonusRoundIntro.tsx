@@ -8,9 +8,15 @@ export function BonusRoundIntro({ onStart }: { onStart: () => void }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-5 rounded-3xl bg-white/95 p-8 text-center text-foreground shadow-xl"
+      className="glass-card flex flex-col items-center gap-5 rounded-3xl p-8 text-center text-foreground"
     >
-      <span className="text-5xl">✨</span>
+      <motion.span
+        className="text-5xl"
+        animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.15, 1] }}
+        transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" }}
+      >
+        ✨
+      </motion.span>
       <div className="flex flex-col gap-1">
         <h2 className="font-display text-2xl font-bold">Bonus round unlocked!</h2>
         <p className="text-sm text-muted-foreground">

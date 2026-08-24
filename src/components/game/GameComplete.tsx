@@ -9,9 +9,16 @@ export function GameComplete() {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center gap-5 rounded-3xl bg-white/95 p-8 text-center text-foreground shadow-xl"
+      className="glass-card flex flex-col items-center gap-5 rounded-3xl p-8 text-center text-foreground"
     >
-      <span className="text-5xl">🎉</span>
+      <motion.span
+        className="text-5xl"
+        initial={{ scale: 0, rotate: -15 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 240, damping: 12, delay: 0.1 }}
+      >
+        🎉
+      </motion.span>
       <div className="flex flex-col gap-1">
         <h2 className="font-display text-2xl font-bold">That&apos;s everyone!</h2>
         <p className="text-sm text-muted-foreground">

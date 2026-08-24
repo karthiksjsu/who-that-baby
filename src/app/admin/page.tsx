@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PartyBackdrop } from "@/components/shared/PartyBackdrop";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
@@ -32,10 +33,11 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-party-gradient px-6">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-6">
+      <PartyBackdrop />
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-3xl bg-white/95 p-8 shadow-xl"
+        className="glass-card relative z-10 flex w-full max-w-sm flex-col gap-4 rounded-3xl p-8"
       >
         <div className="flex flex-col items-center gap-1 pb-2 text-center">
           <span className="text-3xl">🛠️</span>

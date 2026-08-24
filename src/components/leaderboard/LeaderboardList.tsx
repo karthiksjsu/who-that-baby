@@ -10,15 +10,15 @@ export function LeaderboardList() {
   const myId = typeof window !== "undefined" ? getPlayerId() : null;
 
   if (!data) {
-    return <p className="text-white/90">Loading leaderboard…</p>;
+    return <p className="text-center text-white/90">Loading leaderboard…</p>;
   }
 
   if (data.length === 0) {
-    return <p className="text-white/90">No guesses yet — be the first!</p>;
+    return <p className="text-center text-white/90">No guesses yet — be the first!</p>;
   }
 
   return (
-    <ul className="flex w-full max-w-md flex-col gap-2.5">
+    <ul className="mx-auto flex w-full max-w-md flex-col gap-2.5">
       <AnimatePresence initial={false}>
         {data.map((row, i) => (
           <LeaderboardRow

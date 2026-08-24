@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayFlow } from "@/components/game/PlayFlow";
+import { PartyBackdrop } from "@/components/shared/PartyBackdrop";
 import { useGameStatus } from "@/lib/game/useGameStatus";
 import { getPlayerToken } from "@/lib/player-session";
 
@@ -27,8 +28,9 @@ export default function PlayPage() {
   }, [status, router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-party-gradient px-4 py-10">
-      {token ? <PlayFlow token={token} /> : null}
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-4 py-10">
+      <PartyBackdrop />
+      <div className="relative z-10 w-full">{token ? <PlayFlow token={token} /> : null}</div>
     </main>
   );
 }

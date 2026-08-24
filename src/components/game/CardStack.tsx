@@ -51,12 +51,12 @@ export function CardStack({
   }
 
   if (phase === "error") {
-    return <p className="rounded-2xl bg-white/95 p-4 text-red-600">{error}</p>;
+    return <p className="glass-card rounded-2xl p-4 text-red-600">{error}</p>;
   }
 
   if (phase === "session-expired") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-3xl bg-white/95 p-8 text-center">
+      <div className="glass-card flex flex-col items-center gap-4 rounded-3xl p-8 text-center">
         <span className="text-4xl">🍼</span>
         <div className="flex flex-col gap-1">
           <p className="font-display text-lg font-bold">Your session expired</p>
@@ -82,6 +82,9 @@ export function CardStack({
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-6">
+      <span className="rounded-full bg-white/20 px-4 py-1 text-xs font-bold tracking-wide text-white uppercase">
+        {round === "choice" ? "🎯 Main round" : "✨ Bonus round"}
+      </span>
       <ProgressBar answered={answeredSoFar} total={totalCount} />
 
       <div className="relative aspect-[3/4] w-full">
@@ -113,7 +116,7 @@ export function CardStack({
       </div>
 
       {currentCard.clue && (
-        <p className="rounded-full bg-white/20 px-4 py-1.5 text-center text-sm text-white">
+        <p className="rounded-full bg-white/20 px-4 py-1.5 text-center text-sm font-medium text-white shadow-sm">
           💡 {currentCard.clue}
         </p>
       )}

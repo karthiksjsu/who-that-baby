@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { JoinForm } from "@/components/join/JoinForm";
+import { PartyBackdrop } from "@/components/shared/PartyBackdrop";
 import { useGameStatus } from "@/lib/game/useGameStatus";
 import { getPlayerName, getPlayerToken } from "@/lib/player-session";
 
@@ -28,7 +29,7 @@ export default function HomePage() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-6 py-16 text-white">
-      <Decor />
+      <PartyBackdrop />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -37,17 +38,24 @@ export default function HomePage() {
         className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center"
       >
         <div className="flex flex-col items-center gap-3">
-          <span className="text-6xl">🍼</span>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-balance drop-shadow-sm sm:text-5xl">
+          <motion.span
+            className="text-7xl drop-shadow-lg"
+            initial={{ scale: 0, rotate: -20 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }}
+          >
+            🍼
+          </motion.span>
+          <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-6xl">
             Who&apos;s That Baby?
           </h1>
-          <p className="max-w-xs text-balance text-white/90">
+          <p className="max-w-xs text-balance text-base text-white/90">
             Guess which grown-up each baby photo belongs to. Fastest correct
             guesses win the most points!
           </p>
         </div>
 
-        <div className="w-full rounded-3xl bg-white/95 p-6 text-foreground shadow-xl backdrop-blur sm:p-8">
+        <div className="glass-card w-full rounded-3xl p-6 text-foreground sm:p-8">
           {!checkedSession ? null : playerName ? (
             <WaitingState name={playerName} status={status?.status} />
           ) : (
@@ -81,17 +89,6 @@ function WaitingState({ name, status }: { name: string; status?: string }) {
       ) : (
         <p className="text-sm text-muted-foreground">One sec, getting things ready…</p>
       )}
-    </div>
-  );
-}
-
-function Decor() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute -left-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
-      <div className="absolute -bottom-20 -right-10 size-72 rounded-full bg-white/10 blur-2xl" />
-      <div className="absolute right-10 top-24 text-4xl opacity-30">👶</div>
-      <div className="absolute bottom-16 left-8 text-4xl opacity-30">🎉</div>
     </div>
   );
 }

@@ -12,22 +12,30 @@ interface BabyCardProps {
 }
 
 export function BabyCard({ card, stackIndex, isTop, exitDirection }: BabyCardProps) {
+  const restRotate = stackIndex === 0 ? 0 : stackIndex === 1 ? 3 : -4;
+
   return (
     <motion.div
-      className="absolute inset-0 overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-black/5"
-      initial={{ scale: 1 - stackIndex * 0.05, y: stackIndex * 14, opacity: stackIndex ? 0.7 : 1 }}
+      className="shadow-party absolute inset-0 overflow-hidden rounded-[2rem] bg-white ring-4 ring-white"
+      initial={{
+        scale: 1 - stackIndex * 0.06,
+        y: stackIndex * 16,
+        rotate: restRotate,
+        opacity: stackIndex ? 0.75 : 1,
+      }}
       animate={
         exitDirection
           ? {
               x: exitDirection === "correct" ? 420 : -420,
-              rotate: exitDirection === "correct" ? 18 : -18,
+              rotate: exitDirection === "correct" ? 24 : -24,
               opacity: 0,
               transition: { duration: 0.45, ease: "easeIn" },
             }
           : {
-              scale: 1 - stackIndex * 0.05,
-              y: stackIndex * 14,
-              opacity: stackIndex ? 0.7 : 1,
+              scale: 1 - stackIndex * 0.06,
+              y: stackIndex * 16,
+              rotate: restRotate,
+              opacity: stackIndex ? 0.75 : 1,
               transition: { type: "spring", stiffness: 260, damping: 24 },
             }
       }

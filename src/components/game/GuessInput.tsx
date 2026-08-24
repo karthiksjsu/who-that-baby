@@ -50,7 +50,7 @@ export function GuessInput({ cardId, disabled, isCorrect, correctName, onSubmit 
           placeholder="Who is this baby?"
           autoComplete="off"
           className={cn(
-            "h-12 text-base",
+            "h-12 bg-white text-base shadow-sm",
             revealed && isCorrect && "border-emerald-500 bg-emerald-50 text-emerald-700",
             revealed && !isCorrect && "border-red-500 bg-red-50 text-red-700"
           )}
