@@ -1,4 +1,5 @@
 export type GameStatus = "draft" | "live" | "closed";
+export type GameRound = "choice" | "bonus";
 
 export interface GameSettings {
   status: GameStatus;
@@ -10,6 +11,8 @@ export interface Baby {
   id: string;
   photo_url: string;
   correct_name: string;
+  clue: string | null;
+  round: GameRound;
   display_order: number;
   created_at: string;
 }
@@ -25,6 +28,7 @@ export interface Guess {
   id: string;
   player_id: string;
   baby_id: string;
+  round: GameRound;
   guessed_name: string;
   is_correct: boolean;
   points: number;
@@ -41,11 +45,15 @@ export interface LeaderboardRow {
   last_answer_at: string | null;
 }
 
-/** What a player receives for one card — never includes the correct answer directly. */
+/**
+ * What a player receives for one card — never includes the correct answer
+ * directly. `choices` is only present for the multiple-choice round.
+ */
 export interface GameCard {
   id: string;
   photo_url: string;
   order: number;
-  choices: string[];
+  clue: string | null;
+  choices: string[] | null;
   answered: boolean;
 }

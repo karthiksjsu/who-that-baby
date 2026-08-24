@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CardStack } from "@/components/game/CardStack";
+import { PlayFlow } from "@/components/game/PlayFlow";
 import { useGameStatus } from "@/lib/game/useGameStatus";
 import { getPlayerToken } from "@/lib/player-session";
 
@@ -28,7 +28,7 @@ export default function PlayPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-party-gradient px-4 py-10">
-      {token ? <CardStack token={token} /> : null}
+      {token ? <PlayFlow token={token} /> : null}
     </main>
   );
 }

@@ -21,3 +21,12 @@ export async function createPlayer(name: string, clientToken: string): Promise<P
   if (error) throw error;
   return data as Player;
 }
+
+/** Wipes every player (and their guesses, via cascade). Babies/photos are untouched. */
+export async function deleteAllPlayers(): Promise<void> {
+  const { error } = await supabaseAdmin()
+    .from("players")
+    .delete()
+    .not("id", "is", null);
+  if (error) throw error;
+}

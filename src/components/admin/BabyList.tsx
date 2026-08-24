@@ -4,18 +4,27 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowRightLeft, ArrowUp, Check, Trash2, X } from "lucide-react";
 import type { Baby } from "@/types/db";
 
 export function BabyList({
   babies,
+  emptyLabel,
+  moveLabel,
+  showClue,
   onChange,
+  onMoveRound,
 }: {
   babies: Baby[];
+  emptyLabel: string;
+  moveLabel: string;
+  showClue: boolean;
   onChange: (babies: Baby[]) => void;
+  onMoveRound: (id: string) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingValue, setEditingValue] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editClue, setEditClue] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function persistOrder(next: Baby[]) {
@@ -49,26 +58,37 @@ export function BabyList({
     }
   }
 
+  function startEdit(baby: Baby) {
+    setEditingId(baby.id);
+    setEditName(baby.correct_name);
+    setEditClue(baby.clue ?? "");
+  }
+
   async function saveEdit(id: string) {
-    const value = editingValue.trim();
-    setEditingId(null);
-    if (!value) return;
+    const name = editName.trim();
+    if (!name) return;
+    const clue = editClue.trim();
     const res = await fetch(`/api/admin/babies/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ correct_name: value }),
+      body: JSON.stringify(showClue ? { correct_name: name, clue } : { correct_name: name }),
     });
     if (!res.ok) {
-      toast.error("Couldn't rename that baby.");
+      toast.error("Couldn't save that baby.");
       return;
     }
-    onChange(babies.map((b) => (b.id === id ? { ...b, correct_name: value } : b)));
+    onChange(
+      babies.map((b) =>
+        b.id === id ? { ...b, correct_name: name, ...(showClue ? { clue: clue || null } : {}) } : b
+      )
+    );
+    setEditingId(null);
   }
 
   if (babies.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-        No babies added yet. Upload your first photo to the left!
+        {emptyLabel}
       </p>
     );
   }
@@ -88,55 +108,101 @@ export function BabyList({
           />
 
           {editingId === baby.id ? (
-            <Input
-              autoFocus
-              value={editingValue}
-              onChange={(e) => setEditingValue(e.target.value)}
-              onBlur={() => saveEdit(baby.id)}
-              onKeyDown={(e) => e.key === "Enter" && saveEdit(baby.id)}
-              className="h-9 flex-1"
-            />
+            <div className="flex flex-1 flex-col gap-1.5">
+              <Input
+                autoFocus
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveEdit(baby.id)}
+                placeholder="Name"
+                className="h-9"
+              />
+              {showClue && (
+                <Input
+                  value={editClue}
+                  onChange={(e) => setEditClue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveEdit(baby.id)}
+                  placeholder="Clue (optional)"
+                  maxLength={140}
+                  className="h-9"
+                />
+              )}
+            </div>
           ) : (
             <button
               type="button"
-              className="flex-1 truncate text-left font-medium hover:underline"
-              onClick={() => {
-                setEditingId(baby.id);
-                setEditingValue(baby.correct_name);
-              }}
+              className="flex flex-1 flex-col items-start truncate text-left"
+              onClick={() => startEdit(baby)}
             >
-              {baby.correct_name}
+              <span className="font-medium hover:underline">{baby.correct_name}</span>
+              {showClue && (
+                <span className="truncate text-xs text-muted-foreground">
+                  {baby.clue || "Add a clue"}
+                </span>
+              )}
             </button>
           )}
 
           <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              disabled={i === 0}
-              onClick={() => move(baby.id, -1)}
-            >
-              <ArrowUp className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              disabled={i === babies.length - 1}
-              onClick={() => move(baby.id, 1)}
-            >
-              <ArrowDown className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              disabled={busyId === baby.id}
-              onClick={() => handleDelete(baby.id)}
-            >
-              <Trash2 className="size-4 text-destructive" />
-            </Button>
+            {editingId === baby.id ? (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => saveEdit(baby.id)}
+                >
+                  <Check className="size-4 text-emerald-600" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setEditingId(null)}
+                >
+                  <X className="size-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title={moveLabel}
+                  onClick={() => onMoveRound(baby.id)}
+                >
+                  <ArrowRightLeft className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={i === 0}
+                  onClick={() => move(baby.id, -1)}
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={i === babies.length - 1}
+                  onClick={() => move(baby.id, 1)}
+                >
+                  <ArrowDown className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={busyId === baby.id}
+                  onClick={() => handleDelete(baby.id)}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </>
+            )}
           </div>
         </li>
       ))}

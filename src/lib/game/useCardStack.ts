@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { GameCard } from "@/types/db";
+import { clearPlayerSession } from "@/lib/player-session";
+import type { GameCard, GameRound } from "@/types/db";
 
-type Phase = "loading" | "answering" | "revealing" | "done" | "error";
+type Phase = "loading" | "answering" | "revealing" | "done" | "error" | "session-expired";
 
 interface GuessResult {
   is_correct: boolean;
@@ -11,7 +12,7 @@ interface GuessResult {
   correct_name: string;
 }
 
-export function useCardStack(token: string | null) {
+export function useCardStack(token: string | null, round: GameRound) {
   const [allCount, setAllCount] = useState(0);
   const [queue, setQueue] = useState<GameCard[]>([]);
   const [phase, setPhase] = useState<Phase>("loading");
@@ -25,10 +26,16 @@ export function useCardStack(token: string | null) {
     if (!token) return;
     setPhase("loading");
     try {
-      const res = await fetch(`/api/game/cards?token=${encodeURIComponent(token)}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/game/cards?token=${encodeURIComponent(token)}&round=${round}`,
+        { cache: "no-store" }
+      );
       const data = await res.json();
+      if (res.status === 404) {
+        clearPlayerSession();
+        setPhase("session-expired");
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? "Couldn't load the game.");
 
       const cards = data.cards as GameCard[];
@@ -41,7 +48,7 @@ export function useCardStack(token: string | null) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setPhase("error");
     }
-  }, [token]);
+  }, [token, round]);
 
   useEffect(() => {
     load();
@@ -63,11 +70,17 @@ export function useCardStack(token: string | null) {
           body: JSON.stringify({
             client_token: token,
             baby_id: currentCard.id,
+            round,
             guessed_name: guessedName,
             response_time_ms: responseTimeMs,
           }),
         });
         const data = await res.json();
+        if (res.status === 404) {
+          clearPlayerSession();
+          setPhase("session-expired");
+          return;
+        }
         if (!res.ok) throw new Error(data.error ?? "Couldn't submit that guess.");
         setResult(data as GuessResult);
       } catch (err) {
@@ -75,7 +88,7 @@ export function useCardStack(token: string | null) {
         setPhase("error");
       }
     },
-    [token, currentCard, phase]
+    [token, currentCard, phase, round]
   );
 
   const advance = useCallback(() => {

@@ -1,12 +1,11 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import type { Baby } from "@/types/db";
+import type { Baby, GameRound } from "@/types/db";
 
-export async function listBabies(): Promise<Baby[]> {
-  const { data, error } = await supabaseAdmin()
-    .from("babies")
-    .select("*")
-    .order("display_order", { ascending: true });
+export async function listBabies(round?: GameRound): Promise<Baby[]> {
+  let query = supabaseAdmin().from("babies").select("*");
+  if (round) query = query.eq("round", round);
+  const { data, error } = await query.order("display_order", { ascending: true });
   if (error) throw error;
   return data as Baby[];
 }
@@ -14,6 +13,8 @@ export async function listBabies(): Promise<Baby[]> {
 export async function createBaby(input: {
   photo_url: string;
   correct_name: string;
+  clue: string | null;
+  round: GameRound;
   display_order: number;
 }): Promise<Baby> {
   const { data, error } = await supabaseAdmin()
@@ -27,7 +28,7 @@ export async function createBaby(input: {
 
 export async function updateBaby(
   id: string,
-  patch: Partial<Pick<Baby, "correct_name" | "photo_url" | "display_order">>
+  patch: Partial<Pick<Baby, "correct_name" | "clue" | "round" | "photo_url" | "display_order">>
 ): Promise<Baby> {
   const { data, error } = await supabaseAdmin()
     .from("babies")

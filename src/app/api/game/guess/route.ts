@@ -6,11 +6,18 @@ import { getGameSettings } from "@/lib/db/settings";
 import { clampResponseTime, scoreGuess } from "@/lib/game/scoring";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { LEADERBOARD_CHANNEL, LEADERBOARD_EVENT } from "@/lib/realtime/channels";
+import type { GameRound } from "@/types/db";
+
+/** Case/whitespace-insensitive so "priya sharma" matches "Priya Sharma". */
+function normalize(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 export const POST = apiRoute(async (request) => {
   const body = await request.json().catch(() => ({}));
   const token = typeof body.client_token === "string" ? body.client_token : "";
   const babyId = typeof body.baby_id === "string" ? body.baby_id : "";
+  const round: GameRound = body.round === "bonus" ? "bonus" : "choice";
   const guessedName = typeof body.guessed_name === "string" ? body.guessed_name.trim() : "";
   const responseTimeMs = clampResponseTime(Number(body.response_time_ms));
 
@@ -39,7 +46,7 @@ export const POST = apiRoute(async (request) => {
     return NextResponse.json({ error: "Unknown baby." }, { status: 404 });
   }
 
-  const isCorrect = baby.correct_name === guessedName;
+  const isCorrect = normalize(baby.correct_name) === normalize(guessedName);
   const points = scoreGuess(isCorrect, responseTimeMs);
 
   const { data: inserted, error: insertError } = await client
@@ -47,6 +54,7 @@ export const POST = apiRoute(async (request) => {
     .insert({
       player_id: player.id,
       baby_id: babyId,
+      round,
       guessed_name: guessedName,
       is_correct: isCorrect,
       points,
@@ -56,7 +64,7 @@ export const POST = apiRoute(async (request) => {
     .single();
 
   if (insertError) {
-    // Unique (player_id, baby_id) violation = already answered this card.
+    // Unique (player_id, baby_id, round) violation = already answered this card this round.
     if (insertError.code === "23505") {
       return NextResponse.json({ error: "Already answered." }, { status: 409 });
     }

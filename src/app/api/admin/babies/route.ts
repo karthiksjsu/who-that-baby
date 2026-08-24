@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { apiRoute } from "@/lib/api/handler";
 import { createBaby, listBabies } from "@/lib/db/babies";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import type { GameRound } from "@/types/db";
 
 export const GET = apiRoute(async () => {
   const babies = await listBabies();
@@ -19,6 +20,9 @@ export const POST = apiRoute(async (request) => {
 
   const file = form.get("photo");
   const correctName = String(form.get("correct_name") ?? "").trim();
+  const round: GameRound = form.get("round") === "bonus" ? "bonus" : "choice";
+  const clueRaw = String(form.get("clue") ?? "").trim();
+  const clue = clueRaw ? clueRaw : null;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Missing photo file." }, { status: 400 });
@@ -54,6 +58,8 @@ export const POST = apiRoute(async (request) => {
   const baby = await createBaby({
     photo_url: publicUrl.publicUrl,
     correct_name: correctName,
+    clue,
+    round,
     display_order: nextOrder,
   });
 
