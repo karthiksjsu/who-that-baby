@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,9 +55,14 @@ export function JoinForm({ onJoined }: { onJoined: (name: string) => void }) {
         type="submit"
         size="lg"
         disabled={loading || !name.trim()}
-        className="h-12 text-base font-semibold"
+        className="h-12 gap-2 text-base font-semibold"
       >
-        {loading ? "Joining…" : "Let's play 🍼"}
+        {loading ? "Joining…" : (
+          <>
+            Let&apos;s play
+            <ArrowRight className="size-4" />
+          </>
+        )}
       </Button>
     </form>
   );

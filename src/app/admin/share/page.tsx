@@ -1,3 +1,4 @@
+import { Baby } from "lucide-react";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { QrCode } from "@/components/shared/QrCode";
 
@@ -10,8 +11,10 @@ export default function AdminSharePage() {
         <AdminNav />
       </div>
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-4 py-12 text-center">
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-4xl">🍼</span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10">
+            <Baby className="size-7 text-primary" strokeWidth={1.75} />
+          </div>
           <h1 className="font-display text-2xl font-bold">Scan to play!</h1>
           <p className="text-sm text-muted-foreground">
             Show this on a projector, or print it out for the party.

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
+import { Baby, Lightbulb, Sparkles, Target } from "lucide-react";
 import { BabyCard } from "@/components/game/BabyCard";
 import { ChoiceButtons } from "@/components/game/ChoiceButtons";
 import { GuessInput } from "@/components/game/GuessInput";
@@ -57,7 +58,9 @@ export function CardStack({
   if (phase === "session-expired") {
     return (
       <div className="glass-card flex flex-col items-center gap-4 rounded-3xl p-8 text-center">
-        <span className="text-4xl">🍼</span>
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10">
+          <Baby className="size-7 text-primary" strokeWidth={1.75} />
+        </div>
         <div className="flex flex-col gap-1">
           <p className="font-display text-lg font-bold">Your session expired</p>
           <p className="text-sm text-muted-foreground">
@@ -82,8 +85,18 @@ export function CardStack({
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-6">
-      <span className="rounded-full bg-white/20 px-4 py-1 text-xs font-bold tracking-wide text-white uppercase">
-        {round === "choice" ? "🎯 Main round" : "✨ Bonus round"}
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-4 py-1 text-xs font-bold tracking-wide text-white uppercase">
+        {round === "choice" ? (
+          <>
+            <Target className="size-3.5" strokeWidth={2.25} />
+            Main round
+          </>
+        ) : (
+          <>
+            <Sparkles className="size-3.5" strokeWidth={2.25} />
+            Bonus round
+          </>
+        )}
       </span>
       <ProgressBar answered={answeredSoFar} total={totalCount} />
 
@@ -116,8 +129,9 @@ export function CardStack({
       </div>
 
       {currentCard.clue && (
-        <p className="rounded-full bg-white/20 px-4 py-1.5 text-center text-sm font-medium text-white shadow-sm">
-          💡 {currentCard.clue}
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-4 py-1.5 text-center text-sm font-medium text-white shadow-sm">
+          <Lightbulb className="size-4 shrink-0" strokeWidth={1.75} />
+          {currentCard.clue}
         </p>
       )}
 

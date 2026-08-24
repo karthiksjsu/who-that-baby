@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 import { ConfettiBurst } from "@/components/shared/ConfettiBurst";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import { useLeaderboard } from "@/lib/game/useLeaderboard";
@@ -23,14 +24,14 @@ export function WinnerReveal() {
           And the winner is…
         </span>
 
-        <motion.span
-          className="text-7xl drop-shadow-lg"
+        <motion.div
+          className="flex size-24 items-center justify-center rounded-[2rem] bg-white/15 shadow-party ring-1 ring-white/40"
           initial={{ scale: 0, rotate: -25 }}
           animate={{ scale: [0, 1.2, 1], rotate: 0 }}
           transition={{ type: "spring", stiffness: 220, damping: 12, delay: 0.15 }}
         >
-          👑
-        </motion.span>
+          <Crown className="size-12 text-amber-300" strokeWidth={1.5} fill="currentColor" />
+        </motion.div>
 
         {winner ? (
           <motion.h1

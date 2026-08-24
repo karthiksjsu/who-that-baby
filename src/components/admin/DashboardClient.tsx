@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles, Target } from "lucide-react";
 import { toast } from "sonner";
 import { BabyForm } from "@/components/admin/BabyForm";
 import { BabyList } from "@/components/admin/BabyList";
@@ -55,11 +56,16 @@ export function DashboardClient({
       </div>
 
       <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="font-display text-xl font-bold">🎯 Main round · multiple choice</h2>
-          <p className="text-sm text-muted-foreground">
-            Every player sees these first, picking the name from a few options.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Target className="size-5 text-primary" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h2 className="font-display text-xl font-bold">Main round · multiple choice</h2>
+            <p className="text-sm text-muted-foreground">
+              Every player sees these first, picking the name from a few options.
+            </p>
+          </div>
         </div>
         {mcqBabies.length < 4 && (
           <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
@@ -83,11 +89,16 @@ export function DashboardClient({
       </section>
 
       <section className="flex flex-col gap-4">
-        <div>
-          <h2 className="font-display text-xl font-bold">✨ Bonus round · free text</h2>
-          <p className="text-sm text-muted-foreground">
-            Unlocked after the main round — players type each name from scratch.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Sparkles className="size-5 text-primary" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h2 className="font-display text-xl font-bold">Bonus round · free text</h2>
+            <p className="text-sm text-muted-foreground">
+              Unlocked after the main round — players type each name from scratch.
+            </p>
+          </div>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,320px)_1fr]">
           <BabyForm

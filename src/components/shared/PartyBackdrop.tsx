@@ -2,57 +2,53 @@
 
 import { motion } from "framer-motion";
 
-interface FloatingPiece {
-  emoji: string;
+interface Orb {
   className: string;
-  size: string;
-  delay: number;
+  size: number;
+  color: string;
   duration: number;
+  delay: number;
 }
 
-const PIECES: FloatingPiece[] = [
-  { emoji: "🍼", className: "left-[8%] top-[12%]", size: "text-5xl", delay: 0, duration: 6 },
-  { emoji: "🎉", className: "right-[10%] top-[18%]", size: "text-4xl", delay: 0.4, duration: 7 },
-  { emoji: "👶", className: "right-[6%] bottom-[22%]", size: "text-5xl", delay: 0.8, duration: 6.5 },
-  { emoji: "✨", className: "left-[10%] bottom-[16%]", size: "text-3xl", delay: 1.2, duration: 5.5 },
-  { emoji: "🧸", className: "left-[4%] top-[52%]", size: "text-4xl", delay: 0.6, duration: 7.5 },
-  { emoji: "🎈", className: "right-[4%] top-[48%]", size: "text-4xl", delay: 1, duration: 6.8 },
+const ORBS: Orb[] = [
+  { className: "-left-24 -top-20", size: 340, color: "oklch(0.75 0.19 350 / 0.55)", duration: 14, delay: 0 },
+  { className: "-right-28 top-10", size: 300, color: "oklch(0.7 0.2 280 / 0.5)", duration: 17, delay: 1 },
+  { className: "-bottom-28 -left-16", size: 320, color: "oklch(0.78 0.18 240 / 0.45)", duration: 16, delay: 2 },
+  { className: "-bottom-20 -right-20", size: 280, color: "oklch(0.8 0.17 60 / 0.5)", duration: 15, delay: 0.5 },
 ];
 
 /**
- * Shared ambient background for full-bleed party-themed screens: blurred
- * color blobs plus fully-opaque floating emoji that drift gently. Rendered
- * once per page behind the main content (z-0), never intercepts clicks.
+ * Shared ambient background for full-bleed screens: soft drifting gradient
+ * orbs (mesh-gradient look) plus a faint grain texture for tactility. No
+ * literal emoji/clipart — the baby photos and typography carry the content.
  */
 export function PartyBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute -left-20 -top-24 size-80 rounded-full bg-white/20 blur-3xl" />
-      <div className="absolute -bottom-24 -right-16 size-96 rounded-full bg-white/15 blur-3xl" />
-      <div className="absolute left-1/2 top-1/3 size-72 -translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-
-      {PIECES.map((piece, i) => (
+      {ORBS.map((orb, i) => (
         <motion.div
           key={i}
-          className={`absolute ${piece.className} ${piece.size}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: piece.delay }}
-        >
-          <motion.span
-            className="block drop-shadow-lg"
-            animate={{ y: [0, -14, 0], rotate: [0, 6, -6, 0] }}
-            transition={{
-              duration: piece.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: piece.delay,
-            }}
-          >
-            {piece.emoji}
-          </motion.span>
-        </motion.div>
+          className={`absolute rounded-full blur-3xl ${orb.className}`}
+          style={{ width: orb.size, height: orb.size, background: orb.color }}
+          animate={{
+            x: [0, 24, -16, 0],
+            y: [0, -20, 14, 0],
+          }}
+          transition={{
+            duration: orb.duration,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: orb.delay,
+          }}
+        />
       ))}
+      <div
+        className="absolute inset-0 opacity-[0.05] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+        }}
+      />
     </div>
   );
 }
