@@ -13,11 +13,11 @@ export function ScorePopup({
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: 10, scale: 0.6, rotate: isCorrect ? -8 : 8 }}
-        animate={{ opacity: 1, y: -14, scale: 1.1, rotate: 0 }}
+        animate={{ opacity: 1, y: -18, scale: 1.25, rotate: 0 }}
         exit={{ opacity: 0, scale: 0.8 }}
         transition={{ type: "spring", stiffness: 320, damping: 18 }}
         className={
-          "pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full px-5 py-2 text-base font-extrabold shadow-lg " +
+          "pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full px-6 py-3 text-lg font-extrabold shadow-lg " +
           (isCorrect
             ? "bg-emerald-500 text-white"
             : "bg-red-500 text-white")

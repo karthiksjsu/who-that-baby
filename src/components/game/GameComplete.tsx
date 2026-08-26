@@ -12,7 +12,7 @@ export function GameComplete() {
       className="glass-card flex flex-col items-center gap-5 rounded-3xl p-8 text-center text-foreground"
     >
       <motion.span
-        className="text-5xl"
+        className="text-7xl"
         initial={{ scale: 0, rotate: -15 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 240, damping: 12, delay: 0.1 }}
@@ -20,7 +20,7 @@ export function GameComplete() {
         🎉
       </motion.span>
       <div className="flex flex-col gap-1">
-        <h2 className="font-display text-2xl font-bold">That&apos;s everyone!</h2>
+        <h2 className="font-display text-3xl font-bold">That&apos;s everyone!</h2>
         <p className="text-sm text-muted-foreground">
           You&apos;ve guessed every baby. Check the leaderboard to see how you stack up.
         </p>

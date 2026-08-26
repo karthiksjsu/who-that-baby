@@ -11,14 +11,14 @@ export function BonusRoundIntro({ onStart }: { onStart: () => void }) {
       className="glass-card flex flex-col items-center gap-5 rounded-3xl p-8 text-center text-foreground"
     >
       <motion.span
-        className="text-5xl"
+        className="text-7xl"
         animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.15, 1] }}
         transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" }}
       >
         ✨
       </motion.span>
       <div className="flex flex-col gap-1">
-        <h2 className="font-display text-2xl font-bold">Bonus round unlocked!</h2>
+        <h2 className="font-display text-3xl font-bold">Bonus round unlocked!</h2>
         <p className="text-sm text-muted-foreground">
           Same babies, no multiple choice this time — type each name from scratch for extra
           points.

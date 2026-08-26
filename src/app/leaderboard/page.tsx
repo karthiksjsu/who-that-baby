@@ -26,13 +26,13 @@ export default function LeaderboardPage() {
         className="relative z-10 flex flex-col items-center gap-1 text-center text-white"
       >
         <motion.span
-          className="text-5xl drop-shadow-lg"
-          animate={{ rotate: [0, -6, 6, 0] }}
+          className="text-7xl drop-shadow-xl"
+          animate={{ rotate: [0, -6, 6, 0], scale: [1, 1.08, 1] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
           🏆
         </motion.span>
-        <h1 className="font-display text-4xl font-extrabold drop-shadow-md">Leaderboard</h1>
+        <h1 className="font-display text-5xl font-extrabold drop-shadow-md">Leaderboard</h1>
         <p className="text-sm text-white/85">Updates live as everyone plays</p>
       </motion.div>
       <div className="relative z-10 w-full">

@@ -37,19 +37,25 @@ export default function HomePage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center"
       >
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-4">
           <motion.span
-            className="text-7xl drop-shadow-lg"
+            className="text-9xl drop-shadow-xl"
             initial={{ scale: 0, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }}
           >
-            🍼
+            <motion.span
+              className="block"
+              animate={{ y: [0, -10, 0], rotate: [0, -4, 4, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            >
+              🍼
+            </motion.span>
           </motion.span>
-          <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-6xl">
+          <h1 className="font-display text-6xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-7xl">
             Who&apos;s That Baby?
           </h1>
-          <p className="max-w-xs text-balance text-base text-white/90">
+          <p className="max-w-xs text-balance text-lg text-white/90">
             Guess which grown-up each baby photo belongs to. Fastest correct
             guesses win the most points!
           </p>
@@ -76,9 +82,9 @@ function WaitingState({ name, status }: { name: string; status?: string }) {
       {status === "draft" || !status ? (
         <>
           <motion.span
-            animate={{ rotate: [0, -8, 8, -8, 0] }}
+            animate={{ rotate: [0, -8, 8, -8, 0], scale: [1, 1.12, 1] }}
             transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-            className="text-4xl"
+            className="text-6xl"
           >
             🍼
           </motion.span>

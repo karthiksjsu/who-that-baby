@@ -24,12 +24,18 @@ export function WinnerReveal() {
         </span>
 
         <motion.span
-          className="text-7xl drop-shadow-lg"
+          className="text-9xl drop-shadow-xl"
           initial={{ scale: 0, rotate: -25 }}
-          animate={{ scale: [0, 1.2, 1], rotate: 0 }}
+          animate={{ scale: [0, 1.3, 1], rotate: 0 }}
           transition={{ type: "spring", stiffness: 220, damping: 12, delay: 0.15 }}
         >
-          👑
+          <motion.span
+            className="block"
+            animate={{ rotate: [0, -6, 6, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          >
+            👑
+          </motion.span>
         </motion.span>
 
         {winner ? (
@@ -37,7 +43,7 @@ export function WinnerReveal() {
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.3 }}
-            className="font-display text-5xl font-extrabold drop-shadow-md sm:text-6xl"
+            className="font-display text-6xl font-extrabold drop-shadow-md sm:text-7xl"
           >
             {winner.name}!
           </motion.h1>
@@ -49,7 +55,7 @@ export function WinnerReveal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-lg font-medium text-white/90"
+            className="text-xl font-medium text-white/90"
           >
             {winner.score} points · {winner.answered_count} babies guessed
           </motion.p>

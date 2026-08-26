@@ -35,7 +35,7 @@ export function ChoiceButtons({
             whileTap={{ scale: 0.96 }}
             whileHover={!isRevealed && !disabled ? { scale: 1.02 } : undefined}
             className={cn(
-              "rounded-2xl border-2 px-4 py-3.5 text-left text-base font-semibold shadow-sm transition-colors",
+              "rounded-2xl border-2 px-5 py-4 text-left text-lg font-semibold shadow-sm transition-colors",
               "border-border bg-white text-foreground",
               !isRevealed && !disabled && "hover:border-primary hover:bg-primary/5 hover:shadow-md",
               isSelected && !isRevealed && "border-primary bg-primary/10",

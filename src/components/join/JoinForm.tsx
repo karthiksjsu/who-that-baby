@@ -47,14 +47,14 @@ export function JoinForm({ onJoined }: { onJoined: (name: string) => void }) {
           value={name}
           maxLength={60}
           onChange={(e) => setName(e.target.value)}
-          className="h-12 text-base"
+          className="h-14 text-lg"
         />
       </div>
       <Button
         type="submit"
         size="lg"
         disabled={loading || !name.trim()}
-        className="h-12 text-base font-semibold"
+        className="h-14 text-lg font-semibold"
       >
         {loading ? "Joining…" : "Let's play 🍼"}
       </Button>

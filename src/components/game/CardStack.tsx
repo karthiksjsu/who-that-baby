@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { BabyCard } from "@/components/game/BabyCard";
 import { ChoiceButtons } from "@/components/game/ChoiceButtons";
+import { EmojiBurst } from "@/components/game/EmojiBurst";
 import { GuessInput } from "@/components/game/GuessInput";
 import { ScorePopup } from "@/components/game/ScorePopup";
 import { ProgressBar } from "@/components/game/ProgressBar";
@@ -57,7 +58,7 @@ export function CardStack({
   if (phase === "session-expired") {
     return (
       <div className="glass-card flex flex-col items-center gap-4 rounded-3xl p-8 text-center">
-        <span className="text-4xl">🍼</span>
+        <span className="text-6xl">🍼</span>
         <div className="flex flex-col gap-1">
           <p className="font-display text-lg font-bold">Your session expired</p>
           <p className="text-sm text-muted-foreground">
@@ -81,8 +82,8 @@ export function CardStack({
   }
 
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-6">
-      <span className="rounded-full bg-white/20 px-4 py-1 text-xs font-bold tracking-wide text-white uppercase">
+    <div className="flex w-full max-w-md flex-col items-center gap-6">
+      <span className="rounded-full bg-white/20 px-5 py-1.5 text-sm font-bold tracking-wide text-white uppercase">
         {round === "choice" ? "🎯 Main round" : "✨ Bonus round"}
       </span>
       <ProgressBar answered={answeredSoFar} total={totalCount} />
@@ -113,10 +114,16 @@ export function CardStack({
             })}
         </AnimatePresence>
         {result && <ScorePopup isCorrect={result.is_correct} points={result.points} />}
+        {result && (
+          <EmojiBurst
+            trigger={currentCard.id}
+            variant={result.is_correct ? "correct" : "wrong"}
+          />
+        )}
       </div>
 
       {currentCard.clue && (
-        <p className="rounded-full bg-white/20 px-4 py-1.5 text-center text-sm font-medium text-white shadow-sm">
+        <p className="rounded-full bg-white/20 px-5 py-2 text-center text-base font-medium text-white shadow-sm">
           💡 {currentCard.clue}
         </p>
       )}
