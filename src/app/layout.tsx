@@ -20,7 +20,7 @@ const baloo = Baloo_2({
 });
 
 export const metadata: Metadata = {
-  title: "Who's That Baby?",
+  title: "Who's That Baby? 🍼",
   description: "Guess which baby photo belongs to who — a baby shower party game.",
 };
 

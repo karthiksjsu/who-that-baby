@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Baby } from "lucide-react";
 import { JoinForm } from "@/components/join/JoinForm";
 import { PartyBackdrop } from "@/components/shared/PartyBackdrop";
 import { useGameStatus } from "@/lib/game/useGameStatus";
@@ -38,15 +37,15 @@ export default function HomePage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center"
       >
-        <div className="flex flex-col items-center gap-4">
-          <motion.div
-            initial={{ scale: 0, rotate: -12 }}
+        <div className="flex flex-col items-center gap-3">
+          <motion.span
+            className="text-7xl drop-shadow-lg"
+            initial={{ scale: 0, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
-            className="flex size-20 items-center justify-center rounded-[1.75rem] bg-white/15 shadow-party ring-1 ring-white/40 backdrop-blur-sm"
+            transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }}
           >
-            <Baby className="size-10 text-white" strokeWidth={1.75} />
-          </motion.div>
+            🍼
+          </motion.span>
           <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-6xl">
             Who&apos;s That Baby?
           </h1>
@@ -71,16 +70,18 @@ export default function HomePage() {
 function WaitingState({ name, status }: { name: string; status?: string }) {
   return (
     <div className="flex flex-col items-center gap-3 py-2">
-      <p className="text-lg font-semibold">Hey {name}</p>
+      <p className="text-lg font-semibold">
+        Hey {name} 👋
+      </p>
       {status === "draft" || !status ? (
         <>
-          <motion.div
-            animate={{ scale: [1, 1.08, 1] }}
+          <motion.span
+            animate={{ rotate: [0, -8, 8, -8, 0] }}
             transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-            className="flex size-12 items-center justify-center rounded-2xl bg-primary/10"
+            className="text-4xl"
           >
-            <Baby className="size-6 text-primary" strokeWidth={1.75} />
-          </motion.div>
+            🍼
+          </motion.span>
           <p className="text-sm text-muted-foreground">
             You&apos;re in! Hang tight — the host will start the game soon.
           </p>

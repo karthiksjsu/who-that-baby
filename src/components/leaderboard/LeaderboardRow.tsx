@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Medal, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LeaderboardRow as LeaderboardRowType } from "@/types/db";
 
+const MEDALS = ["🥇", "🥈", "🥉"];
 const RANK_STYLES = [
   "bg-gradient-to-br from-amber-300 to-yellow-500 text-amber-900",
   "bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800",
@@ -36,17 +36,11 @@ export function LeaderboardRow({
     >
       <span
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-sm",
+          "flex size-10 shrink-0 items-center justify-center rounded-full text-lg font-bold shadow-sm",
           isTopThree ? RANK_STYLES[rank - 1] : "bg-muted text-muted-foreground"
         )}
       >
-        {rank === 1 ? (
-          <Trophy className="size-5" strokeWidth={2} />
-        ) : isTopThree ? (
-          <Medal className="size-5" strokeWidth={2} />
-        ) : (
-          rank
-        )}
+        {isTopThree ? MEDALS[rank - 1] : rank}
       </span>
       <div className="flex flex-1 flex-col overflow-hidden">
         <span className="truncate font-semibold">{row.name}</span>

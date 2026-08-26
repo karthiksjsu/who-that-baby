@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Baby as BabyIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +67,7 @@ export function BabyForm({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="Preview" className="size-full object-cover" />
           ) : (
-            <BabyIcon className="size-7 text-muted-foreground" strokeWidth={1.5} />
+            <span className="text-2xl">👶</span>
           )}
         </div>
         <div className="flex flex-1 flex-col gap-1.5">
@@ -101,7 +100,7 @@ export function BabyForm({
           <Label htmlFor="clue">Clue for players (optional)</Label>
           <Input
             id="clue"
-            placeholder="e.g. Loves dinosaurs"
+            placeholder="e.g. Loves dinosaurs 🦖"
             value={clue}
             maxLength={140}
             onChange={(e) => setClue(e.target.value)}

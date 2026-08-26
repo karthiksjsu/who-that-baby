@@ -1,7 +1,6 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
 
 export function ScorePopup({
   isCorrect,
@@ -18,21 +17,13 @@ export function ScorePopup({
         exit={{ opacity: 0, scale: 0.8 }}
         transition={{ type: "spring", stiffness: 320, damping: 18 }}
         className={
-          "pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-base font-extrabold shadow-lg " +
-          (isCorrect ? "bg-emerald-500 text-white" : "bg-red-500 text-white")
+          "pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full px-5 py-2 text-base font-extrabold shadow-lg " +
+          (isCorrect
+            ? "bg-emerald-500 text-white"
+            : "bg-red-500 text-white")
         }
       >
-        {isCorrect ? (
-          <>
-            <Check className="size-5" strokeWidth={2.5} />
-            {`+${points}`}
-          </>
-        ) : (
-          <>
-            <X className="size-5" strokeWidth={2.5} />
-            Not quite
-          </>
-        )}
+        {isCorrect ? `+${points} 🎉` : "Not quite! 😬"}
       </motion.div>
     </AnimatePresence>
   );

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
 import { LeaderboardList } from "@/components/leaderboard/LeaderboardList";
 import { PartyBackdrop } from "@/components/shared/PartyBackdrop";
 import { useGameStatus } from "@/lib/game/useGameStatus";
@@ -26,13 +25,13 @@ export default function LeaderboardPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 flex flex-col items-center gap-1 text-center text-white"
       >
-        <motion.div
-          className="flex size-16 items-center justify-center rounded-2xl bg-white/15 shadow-party ring-1 ring-white/30"
+        <motion.span
+          className="text-5xl drop-shadow-lg"
           animate={{ rotate: [0, -6, 6, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Trophy className="size-8 text-white" strokeWidth={1.75} />
-        </motion.div>
+          🏆
+        </motion.span>
         <h1 className="font-display text-4xl font-extrabold drop-shadow-md">Leaderboard</h1>
         <p className="text-sm text-white/85">Updates live as everyone plays</p>
       </motion.div>
