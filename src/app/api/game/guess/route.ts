@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { getPlayerByToken } from "@/lib/db/players";
 import { getGameSettings } from "@/lib/db/settings";
 import { clampResponseTime, scoreGuess } from "@/lib/game/scoring";
+import { TIMED_OUT_GUESS } from "@/lib/game/constants";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { LEADERBOARD_CHANNEL, LEADERBOARD_EVENT } from "@/lib/realtime/channels";
 import type { GameRound } from "@/types/db";
@@ -20,8 +21,11 @@ export const POST = apiRoute(async (request) => {
   const round: GameRound = body.round === "bonus" ? "bonus" : "choice";
   const guessedName = typeof body.guessed_name === "string" ? body.guessed_name.trim() : "";
   const responseTimeMs = clampResponseTime(Number(body.response_time_ms));
+  // The clock ran out before the player picked anything. Recorded as a miss so
+  // waiting a card out is never cheaper than guessing.
+  const timedOut = body.timed_out === true;
 
-  if (!token || !babyId || !guessedName) {
+  if (!token || !babyId || (!guessedName && !timedOut)) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });
   }
 
@@ -46,7 +50,7 @@ export const POST = apiRoute(async (request) => {
     return NextResponse.json({ error: "Unknown baby." }, { status: 404 });
   }
 
-  const isCorrect = normalize(baby.correct_name) === normalize(guessedName);
+  const isCorrect = timedOut ? false : normalize(baby.correct_name) === normalize(guessedName);
   const points = scoreGuess(isCorrect, responseTimeMs);
 
   const { data: inserted, error: insertError } = await client
@@ -55,7 +59,7 @@ export const POST = apiRoute(async (request) => {
       player_id: player.id,
       baby_id: babyId,
       round,
-      guessed_name: guessedName,
+      guessed_name: timedOut ? TIMED_OUT_GUESS : guessedName,
       is_correct: isCorrect,
       points,
       response_time_ms: responseTimeMs,

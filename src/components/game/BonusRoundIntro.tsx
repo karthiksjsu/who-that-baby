@@ -18,14 +18,14 @@ export function BonusRoundIntro({ onStart }: { onStart: () => void }) {
         ✨
       </motion.span>
       <div className="flex flex-col gap-1">
-        <h2 className="font-display text-3xl font-bold">Bonus round unlocked!</h2>
+        <h2 className="font-display text-3xl font-bold">Time to walk!</h2>
         <p className="text-sm text-muted-foreground">
-          Same babies, no multiple choice this time — type each name from scratch for extra
-          points.
+          You crawled through the easy ones. No multiple choice from here — type each name
+          from scratch for extra points.
         </p>
       </div>
       <Button onClick={onStart} size="lg" className="h-12 w-full text-base font-semibold">
-        Start bonus round
+        Start walk round
       </Button>
     </motion.div>
   );

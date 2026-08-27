@@ -56,7 +56,7 @@ export function DashboardClient({
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold">🎯 Main round · multiple choice</h2>
+          <h2 className="font-display text-xl font-bold">🎯 Crawl round · multiple choice</h2>
           <p className="text-sm text-muted-foreground">
             Every player sees these first, picking the name from a few options.
           </p>
@@ -73,8 +73,8 @@ export function DashboardClient({
           />
           <BabyList
             babies={mcqBabies}
-            emptyLabel="No main-round babies yet. Upload one to the left!"
-            moveLabel="Move to bonus round"
+            emptyLabel="No crawl-round babies yet. Upload one to the left!"
+            moveLabel="Move to walk round"
             showClue={false}
             onChange={(next) => replaceGroup("choice", next)}
             onMoveRound={(id) => moveRound(id, "bonus")}
@@ -84,9 +84,9 @@ export function DashboardClient({
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold">✨ Bonus round · free text</h2>
+          <h2 className="font-display text-xl font-bold">✨ Walk round · free text</h2>
           <p className="text-sm text-muted-foreground">
-            Unlocked after the main round — players type each name from scratch.
+            Unlocked after the crawl round — players type each name from scratch.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,320px)_1fr]">
@@ -96,8 +96,8 @@ export function DashboardClient({
           />
           <BabyList
             babies={bonusBabies}
-            emptyLabel="No bonus-round babies yet. Upload one to the left!"
-            moveLabel="Move to main round"
+            emptyLabel="No walk-round babies yet. Upload one to the left!"
+            moveLabel="Move to crawl round"
             showClue
             onChange={(next) => replaceGroup("bonus", next)}
             onMoveRound={(id) => moveRound(id, "choice")}

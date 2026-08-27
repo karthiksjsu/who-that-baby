@@ -20,7 +20,16 @@ export function useCardStack(token: string | null, round: GameRound) {
   const [result, setResult] = useState<GuessResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   // 0 until `load()` sets a real timestamp; answering is disabled until then.
-  const cardStartedAt = useRef<number>(0);
+  // Mirrored into state so the countdown can render off it; the ref is what
+  // callbacks read, to stay clear of stale closures.
+  const cardStartedAtRef = useRef<number>(0);
+  const [cardStartedAt, setCardStartedAt] = useState(0);
+
+  const startCard = useCallback(() => {
+    const now = Date.now();
+    cardStartedAtRef.current = now;
+    setCardStartedAt(now);
+  }, []);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -42,13 +51,13 @@ export function useCardStack(token: string | null, round: GameRound) {
       setAllCount(cards.length);
       const unanswered = cards.filter((c) => !c.answered);
       setQueue(unanswered);
-      cardStartedAt.current = Date.now();
+      startCard();
       setPhase(unanswered.length ? "answering" : "done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setPhase("error");
     }
-  }, [token, round]);
+  }, [token, round, startCard]);
 
   useEffect(() => {
     load();
@@ -56,12 +65,18 @@ export function useCardStack(token: string | null, round: GameRound) {
 
   const currentCard = queue[0] ?? null;
 
-  const submitGuess = useCallback(
-    async (guessedName: string) => {
+  /**
+   * `null` means the clock ran out. The `phase !== "answering"` guard is what
+   * keeps a timer expiry and a last-instant tap from both submitting — whoever
+   * gets there first flips the phase and the other returns.
+   */
+  const sendGuess = useCallback(
+    async (guessedName: string | null) => {
       if (!token || !currentCard || phase !== "answering") return;
-      setSelected(guessedName);
+      const timedOut = guessedName === null;
+      setSelected(timedOut ? null : guessedName);
       setPhase("revealing");
-      const responseTimeMs = Date.now() - cardStartedAt.current;
+      const responseTimeMs = Date.now() - cardStartedAtRef.current;
 
       try {
         const res = await fetch("/api/game/guess", {
@@ -71,7 +86,8 @@ export function useCardStack(token: string | null, round: GameRound) {
             client_token: token,
             baby_id: currentCard.id,
             round,
-            guessed_name: guessedName,
+            guessed_name: timedOut ? "" : guessedName,
+            timed_out: timedOut,
             response_time_ms: responseTimeMs,
           }),
         });
@@ -91,13 +107,19 @@ export function useCardStack(token: string | null, round: GameRound) {
     [token, currentCard, phase, round]
   );
 
+  const submitGuess = useCallback(
+    (guessedName: string) => sendGuess(guessedName),
+    [sendGuess]
+  );
+  const submitTimeout = useCallback(() => sendGuess(null), [sendGuess]);
+
   const advance = useCallback(() => {
     setQueue((prev) => prev.slice(1));
     setSelected(null);
     setResult(null);
-    cardStartedAt.current = Date.now();
+    startCard();
     setPhase((prevPhase) => (prevPhase === "error" ? prevPhase : "answering"));
-  }, []);
+  }, [startCard]);
 
   useEffect(() => {
     if (queue.length === 0 && phase === "answering") {
@@ -113,6 +135,8 @@ export function useCardStack(token: string | null, round: GameRound) {
     result,
     error,
     submitGuess,
+    submitTimeout,
+    cardStartedAt,
     advance,
     remaining: queue.length,
     totalCount: allCount,

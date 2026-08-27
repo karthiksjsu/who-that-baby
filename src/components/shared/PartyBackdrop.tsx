@@ -1,6 +1,8 @@
 "use client";
 
+import type { ReactElement } from "react";
 import { motion } from "framer-motion";
+import { PacifierIcon, RattleIcon } from "@/components/shared/NurseryArt";
 
 interface FloatingPiece {
   emoji: string;
@@ -9,6 +11,36 @@ interface FloatingPiece {
   delay: number;
   duration: number;
 }
+
+/**
+ * Drawn rather than emoji, because Unicode has neither a pacifier nor a
+ * rattle. They drift on the same animation as the emoji pieces so the two
+ * kinds read as one set.
+ */
+interface DrawnPiece {
+  Art: (props: { className?: string }) => ReactElement;
+  className: string;
+  size: string;
+  delay: number;
+  duration: number;
+}
+
+const DRAWN_PIECES: DrawnPiece[] = [
+  {
+    Art: PacifierIcon,
+    className: "left-[13%] top-[31%]",
+    size: "h-14",
+    delay: 0.9,
+    duration: 7.2,
+  },
+  {
+    Art: RattleIcon,
+    className: "right-[12%] top-[29%]",
+    size: "h-14",
+    delay: 1.4,
+    duration: 6.4,
+  },
+];
 
 const PIECES: FloatingPiece[] = [
   { emoji: "🍼", className: "left-[6%] top-[10%]", size: "text-6xl", delay: 0, duration: 6 },
@@ -58,6 +90,33 @@ export function PartyBackdrop() {
           >
             {piece.emoji}
           </motion.span>
+        </motion.div>
+      ))}
+
+      {DRAWN_PIECES.map((piece, i) => (
+        <motion.div
+          key={`drawn-${i}`}
+          className={`absolute ${piece.className}`}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: piece.delay }}
+        >
+          <motion.div
+            className="drop-shadow-xl"
+            animate={{
+              y: [0, -18, 0],
+              rotate: [0, 8, -8, 0],
+              scale: [1, 1.08, 1],
+            }}
+            transition={{
+              duration: piece.duration,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: piece.delay,
+            }}
+          >
+            <piece.Art className={`${piece.size} w-auto`} />
+          </motion.div>
         </motion.div>
       ))}
     </div>

@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { BabyCard } from "@/components/game/BabyCard";
+import { BabyReaction } from "@/components/game/BabyReaction";
+import { BottleTimer } from "@/components/game/BottleTimer";
 import { ChoiceButtons } from "@/components/game/ChoiceButtons";
-import { EmojiBurst } from "@/components/game/EmojiBurst";
 import { GuessInput } from "@/components/game/GuessInput";
 import { ScorePopup } from "@/components/game/ScorePopup";
 import { ProgressBar } from "@/components/game/ProgressBar";
@@ -32,6 +33,8 @@ export function CardStack({
     result,
     error,
     submitGuess,
+    submitTimeout,
+    cardStartedAt,
     advance,
     totalCount,
     answeredSoFar,
@@ -83,10 +86,19 @@ export function CardStack({
 
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-6">
-      <span className="rounded-full bg-white/20 px-5 py-1.5 text-sm font-bold tracking-wide text-white uppercase">
-        {round === "choice" ? "🎯 Main round" : "✨ Bonus round"}
-      </span>
-      <ProgressBar answered={answeredSoFar} total={totalCount} />
+      <div className="flex w-full items-center justify-between gap-3">
+        <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold tracking-wide text-white uppercase">
+          {round === "choice" ? "🎯 Crawl round" : "✨ Walk round"}
+        </span>
+        <BottleTimer
+          // Remounts per card so the bottle refills for each new baby.
+          key={currentCard.id}
+          startedAt={cardStartedAt}
+          running={phase === "answering" && cardStartedAt > 0}
+          onExpire={submitTimeout}
+        />
+      </div>
+      <ProgressBar answered={answeredSoFar} total={totalCount} round={round} />
 
       <div className="relative aspect-[3/4] w-full">
         <AnimatePresence>
@@ -115,9 +127,10 @@ export function CardStack({
         </AnimatePresence>
         {result && <ScorePopup isCorrect={result.is_correct} points={result.points} />}
         {result && (
-          <EmojiBurst
-            trigger={currentCard.id}
-            variant={result.is_correct ? "correct" : "wrong"}
+          // Keyed on the card so the entrance replays fresh on every guess.
+          <BabyReaction
+            key={currentCard.id}
+            variant={result.is_correct ? "happy" : "crying"}
           />
         )}
       </div>
