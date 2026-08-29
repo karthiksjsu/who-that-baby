@@ -41,15 +41,32 @@ export function BabyCard({ card, stackIndex, isTop, exitDirection }: BabyCardPro
       }
       style={{ zIndex: 10 - stackIndex }}
     >
+      {/*
+        The photos are whatever guests dug out of a family album — square,
+        tall, wide, scanned at an angle. Cropping to fill the card is how you
+        end up looking at somebody's dress with the face out of frame, and the
+        face is the whole game. So the photo is fitted whole, and a blown-up
+        blurred copy of itself fills whatever the fit leaves over, which beats
+        bars of dead white on either side.
+        Same `src` and `sizes` on both, so it is one image over the wire.
+      */}
+      <Image
+        src={card.photo_url}
+        alt=""
+        aria-hidden
+        fill
+        sizes="(max-width: 480px) 90vw, 420px"
+        className="scale-110 object-cover blur-xl brightness-90 saturate-150"
+      />
       <Image
         src={card.photo_url}
         alt="Guess who this baby is!"
         fill
         sizes="(max-width: 480px) 90vw, 420px"
-        className="object-cover"
+        className="object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
         priority={isTop}
       />
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
     </motion.div>
   );
 }

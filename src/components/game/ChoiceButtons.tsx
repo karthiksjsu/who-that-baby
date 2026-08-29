@@ -53,7 +53,13 @@ export function ChoiceButtons({
   onChoose,
 }: ChoiceButtonsProps) {
   return (
-    <div className="grid w-full shrink-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+    /*
+     * Two columns at every width. One column costs about a hundred vertical
+     * pixels more on a phone, and that height is worth more to the photo —
+     * which is the question being asked — than to four cards that read fine
+     * side by side.
+     */
+    <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:gap-3">
       {choices.map((name, i) => {
         const accent = ACCENTS[i % ACCENTS.length];
         const isSelected = selected === name;
@@ -100,7 +106,7 @@ export function ChoiceButtons({
 
             <span
               className={cn(
-                "min-w-0 flex-1 text-left text-base font-bold break-words text-foreground",
+                "min-w-0 flex-1 text-left text-sm font-bold break-words text-foreground",
                 "sm:text-lg",
                 isCorrectChoice && "text-emerald-800",
                 isWrongSelected && "text-red-800"
