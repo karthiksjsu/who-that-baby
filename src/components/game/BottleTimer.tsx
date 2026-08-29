@@ -36,17 +36,22 @@ const BOTTLE_OUTER =
  * freeze the level where it is during the reveal.
  */
 export function BottleTimer({
-  startedAt,
+  deadlineAt,
   durationMs = QUESTION_TIME_MS,
   running,
   onExpire,
   className,
 }: {
-  /** `Date.now()` when this card was dealt. */
-  startedAt: number;
+  /**
+   * Local-clock instant the phase ends. Passed as a deadline rather than a
+   * start time because the server owns the clock: the caller has already
+   * corrected the server's deadline for this device's skew, and re-deriving it
+   * from a local start would reintroduce the drift.
+   */
+  deadlineAt: number;
   durationMs?: number;
   running: boolean;
-  onExpire: () => void;
+  onExpire?: () => void;
   className?: string;
 }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -67,7 +72,7 @@ export function BottleTimer({
   }, [onExpire]);
 
   useEffect(() => {
-    const deadline = startedAt + durationMs;
+    const deadline = deadlineAt;
     const remaining = Math.max(0, deadline - Date.now());
 
     // Sync to real elapsed time first, so a freeze/resume lands in the right place.
@@ -81,7 +86,7 @@ export function BottleTimer({
       // Reduced motion gets a coarse stepped drain instead of a smooth one.
       if (still) level.set(durationMs > 0 ? left / durationMs : 0);
     }, 200);
-    const expiry = setTimeout(() => onExpireRef.current(), remaining);
+    const expiry = setTimeout(() => onExpireRef.current?.(), remaining);
     const controls = still
       ? null
       : animate(level, 0, { duration: remaining / 1000, ease: "linear" });
@@ -91,7 +96,7 @@ export function BottleTimer({
       clearTimeout(expiry);
       controls?.stop();
     };
-  }, [startedAt, durationMs, running, still, level]);
+  }, [deadlineAt, durationMs, running, still, level]);
 
   // Fires every frame, but setState bails out when the boolean hasn't flipped.
   useMotionValueEvent(level, "change", (value) => {

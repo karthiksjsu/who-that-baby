@@ -1,37 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { BonusRoundIntro } from "@/components/game/BonusRoundIntro";
-import { CardStack } from "@/components/game/CardStack";
-import { GameComplete } from "@/components/game/GameComplete";
+import { LiveGame } from "@/components/game/LiveGame";
 
-type Stage = "choice" | "bonus-intro" | "bonus" | "complete";
-
+/**
+ * The game is synchronized across the room, so there is no per-player stage
+ * machine here any more: which round is running, when the walk-round intro
+ * shows and when the game is over are all server state, and `LiveGame` renders
+ * whichever phase is current.
+ *
+ * The wrapper is still load-bearing. `/play` puts this inside a full-width
+ * column, and every screen `LiveGame` renders is width-capped, so without the
+ * centering here they pin to the left edge.
+ */
 export function PlayFlow({ token }: { token: string }) {
-  const [stage, setStage] = useState<Stage>("choice");
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={stage}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        className="flex w-full flex-col items-center"
-      >
-        {stage === "choice" && (
-          <CardStack token={token} round="choice" onFinished={() => setStage("bonus-intro")} />
-        )}
-        {stage === "bonus-intro" && (
-          <BonusRoundIntro onStart={() => setStage("bonus")} />
-        )}
-        {stage === "bonus" && (
-          <CardStack token={token} round="bonus" onFinished={() => setStage("complete")} />
-        )}
-        {stage === "complete" && <GameComplete />}
-      </motion.div>
-    </AnimatePresence>
+    <div className="flex w-full flex-col items-center">
+      <LiveGame token={token} />
+    </div>
   );
 }

@@ -4,6 +4,14 @@ import { createBaby, listBabies } from "@/lib/db/babies";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { GameRound } from "@/types/db";
 
+/**
+ * Never cache this. It is polled continuously and must always reflect the
+ * database right now; a cached response leaves the room stuck on a stale phase
+ * until someone reloads the page.
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const GET = apiRoute(async () => {
   const babies = await listBabies();
   return NextResponse.json({ babies });

@@ -24,6 +24,20 @@ export default function GlobalError({
             That&apos;s on us, not you. Give it another try.
           </p>
         </div>
+
+        {/*
+          Guests should never see a stack trace, but while developing this
+          screen was swallowing the real cause — a missing database column read
+          as a generic "try again" — and sent us hunting through the terminal.
+          Shown only in development; production still gets the friendly card.
+        */}
+        {process.env.NODE_ENV === "development" && (
+          <pre className="max-h-48 w-full overflow-auto rounded-xl bg-red-50 p-3 text-left text-xs whitespace-pre-wrap text-red-800">
+            {error.message}
+            {error.digest ? `\n\ndigest: ${error.digest}` : ""}
+          </pre>
+        )}
+
         <Button onClick={() => reset()} size="lg" className="h-11 w-full">
           Try again
         </Button>

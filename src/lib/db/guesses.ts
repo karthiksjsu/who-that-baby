@@ -1,4 +1,5 @@
 import "server-only";
+import { dbError } from "@/lib/db/error";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { Guess, GameRound, LeaderboardRow } from "@/types/db";
 
@@ -8,7 +9,7 @@ export async function getGuessesForPlayer(playerId: string, round: GameRound): P
     .select("*")
     .eq("player_id", playerId)
     .eq("round", round);
-  if (error) throw error;
+  if (error) throw dbError(error, "guesses");
   return data as Guess[];
 }
 
@@ -26,12 +27,12 @@ export async function insertGuess(input: {
     .insert(input)
     .select("*")
     .single();
-  if (error) throw error;
+  if (error) throw dbError(error, "guesses");
   return data as Guess;
 }
 
 export async function getLeaderboard(): Promise<LeaderboardRow[]> {
   const { data, error } = await supabaseAdmin().from("leaderboard").select("*");
-  if (error) throw error;
+  if (error) throw dbError(error, "guesses");
   return data as LeaderboardRow[];
 }

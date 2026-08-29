@@ -1,4 +1,5 @@
 import "server-only";
+import { dbError } from "@/lib/db/error";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { Player } from "@/types/db";
 
@@ -8,7 +9,7 @@ export async function getPlayerByToken(clientToken: string): Promise<Player | nu
     .select("*")
     .eq("client_token", clientToken)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw dbError(error, "players");
   return (data as Player) ?? null;
 }
 
@@ -18,7 +19,7 @@ export async function createPlayer(name: string, clientToken: string): Promise<P
     .insert({ name: name.trim().slice(0, 60), client_token: clientToken })
     .select("*")
     .single();
-  if (error) throw error;
+  if (error) throw dbError(error, "players");
   return data as Player;
 }
 
@@ -28,5 +29,5 @@ export async function deleteAllPlayers(): Promise<void> {
     .from("players")
     .delete()
     .not("id", "is", null);
-  if (error) throw error;
+  if (error) throw dbError(error, "players");
 }

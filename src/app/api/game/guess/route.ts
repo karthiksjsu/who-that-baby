@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { apiRoute } from "@/lib/api/handler";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { listBabies } from "@/lib/db/babies";
 import { getPlayerByToken } from "@/lib/db/players";
-import { getGameSettings } from "@/lib/db/settings";
+import { getGameSettings, positionOf } from "@/lib/db/settings";
 import { clampResponseTime, scoreGuess } from "@/lib/game/scoring";
-import { TIMED_OUT_GUESS } from "@/lib/game/constants";
+import { DEADLINE_GRACE_MS } from "@/lib/game/constants";
+import { acceptsAnswers, deadlineMs } from "@/lib/game/schedule";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { LEADERBOARD_CHANNEL, LEADERBOARD_EVENT } from "@/lib/realtime/channels";
-import type { GameRound } from "@/types/db";
 
 /** Case/whitespace-insensitive so "priya sharma" matches "Priya Sharma". */
 function normalize(name: string): string {
@@ -18,14 +19,10 @@ export const POST = apiRoute(async (request) => {
   const body = await request.json().catch(() => ({}));
   const token = typeof body.client_token === "string" ? body.client_token : "";
   const babyId = typeof body.baby_id === "string" ? body.baby_id : "";
-  const round: GameRound = body.round === "bonus" ? "bonus" : "choice";
-  const guessedName = typeof body.guessed_name === "string" ? body.guessed_name.trim() : "";
-  const responseTimeMs = clampResponseTime(Number(body.response_time_ms));
-  // The clock ran out before the player picked anything. Recorded as a miss so
-  // waiting a card out is never cheaper than guessing.
-  const timedOut = body.timed_out === true;
+  const guessedName =
+    typeof body.guessed_name === "string" ? body.guessed_name.trim() : "";
 
-  if (!token || !babyId || (!guessedName && !timedOut)) {
+  if (!token || !babyId || !guessedName) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });
   }
 
@@ -39,27 +36,48 @@ export const POST = apiRoute(async (request) => {
     return NextResponse.json({ error: "Unknown player." }, { status: 404 });
   }
 
-  const client = supabaseAdmin();
-  const { data: baby, error: babyError } = await client
-    .from("babies")
-    .select("id, correct_name")
-    .eq("id", babyId)
-    .maybeSingle();
-  if (babyError) throw babyError;
-  if (!baby) {
-    return NextResponse.json({ error: "Unknown baby." }, { status: 404 });
+  // Everything below is decided from server state. The client says only which
+  // name it picked; which card is live, which round it belongs to, and how long
+  // the player took are all read here.
+  const pos = positionOf(settings);
+  if (!acceptsAnswers(pos)) {
+    return NextResponse.json({ error: "Answers are closed." }, { status: 409 });
   }
 
-  const isCorrect = timedOut ? false : normalize(baby.correct_name) === normalize(guessedName);
+  const babies = await listBabies(pos.round);
+  const baby = babies[pos.index] ?? null;
+  if (!baby) {
+    return NextResponse.json({ error: "No card is live." }, { status: 409 });
+  }
+  if (baby.id !== babyId) {
+    // A stale tab answering a card the room has already left.
+    return NextResponse.json({ error: "That card has passed." }, { status: 409 });
+  }
+
+  const startedAt = settings.phase_started_at
+    ? Date.parse(settings.phase_started_at)
+    : null;
+  const deadline = deadlineMs(pos.phase, startedAt);
+  if (startedAt === null || deadline === null) {
+    return NextResponse.json({ error: "No card is live." }, { status: 409 });
+  }
+  if (Date.now() > deadline + DEADLINE_GRACE_MS) {
+    return NextResponse.json({ error: "Time's up for that card." }, { status: 409 });
+  }
+
+  // Measured server-side. A client that reported its own elapsed time could
+  // simply claim zero and collect the full speed bonus every round.
+  const responseTimeMs = clampResponseTime(Date.now() - startedAt);
+  const isCorrect = normalize(baby.correct_name) === normalize(guessedName);
   const points = scoreGuess(isCorrect, responseTimeMs);
 
-  const { data: inserted, error: insertError } = await client
+  const { data: inserted, error: insertError } = await supabaseAdmin()
     .from("guesses")
     .insert({
       player_id: player.id,
-      baby_id: babyId,
-      round,
-      guessed_name: timedOut ? TIMED_OUT_GUESS : guessedName,
+      baby_id: baby.id,
+      round: pos.round,
+      guessed_name: guessedName,
       is_correct: isCorrect,
       points,
       response_time_ms: responseTimeMs,
@@ -68,7 +86,7 @@ export const POST = apiRoute(async (request) => {
     .single();
 
   if (insertError) {
-    // Unique (player_id, baby_id, round) violation = already answered this card this round.
+    // Unique (player_id, baby_id) violation = already answered this card.
     if (insertError.code === "23505") {
       return NextResponse.json({ error: "Already answered." }, { status: 409 });
     }
@@ -77,10 +95,8 @@ export const POST = apiRoute(async (request) => {
 
   await broadcast(LEADERBOARD_CHANNEL, LEADERBOARD_EVENT, { player_id: player.id });
 
-  return NextResponse.json({
-    is_correct: isCorrect,
-    points,
-    correct_name: baby.correct_name,
-    guess: inserted,
-  });
+  // Note what is NOT returned: whether they were right, and the correct name.
+  // Both are withheld until the reveal so nobody can read the answer off a
+  // faster neighbour's phone. The client only learns it is locked in.
+  return NextResponse.json({ locked_in: true, guess_id: inserted.id });
 });

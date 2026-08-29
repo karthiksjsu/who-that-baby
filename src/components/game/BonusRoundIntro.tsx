@@ -1,9 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 
-export function BonusRoundIntro({ onStart }: { onStart: () => void }) {
+export function BonusRoundIntro() {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -24,9 +23,9 @@ export function BonusRoundIntro({ onStart }: { onStart: () => void }) {
           from scratch for extra points.
         </p>
       </div>
-      <Button onClick={onStart} size="lg" className="h-12 w-full text-base font-semibold">
-        Start walk round
-      </Button>
+      <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+        Starting automatically…
+      </p>
     </motion.div>
   );
 }
