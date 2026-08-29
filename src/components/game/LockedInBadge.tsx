@@ -116,7 +116,7 @@ export function LockedInBadge() {
       initial={{ opacity: 0, y: 8, scale: 0.94 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 320, damping: 20 }}
-      className="flex items-center gap-2.5 rounded-full bg-white/20 py-2 pr-4 pl-3 shadow-sm"
+      className="flex shrink-0 items-center gap-2.5 rounded-full bg-white/20 py-2 pr-4 pl-3 shadow-sm"
       // The rotating text is decorative reassurance; announcing every swap
       // would interrupt a screen reader mid-question. The status is stated
       // once, politely.

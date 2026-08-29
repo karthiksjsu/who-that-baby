@@ -18,7 +18,7 @@ export default function LeaderboardPage() {
   }, [status, router]);
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center gap-6 overflow-hidden bg-party-gradient px-4 py-12">
+    <main className="relative flex min-h-dvh flex-col items-center gap-5 overflow-x-clip bg-party-gradient px-4 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:gap-6 sm:px-6 sm:py-12">
       <PartyBackdrop />
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -26,13 +26,13 @@ export default function LeaderboardPage() {
         className="relative z-10 flex flex-col items-center gap-1 text-center text-white"
       >
         <motion.span
-          className="text-7xl drop-shadow-xl"
+          className="text-6xl drop-shadow-xl sm:text-7xl"
           animate={{ rotate: [0, -6, 6, 0], scale: [1, 1.08, 1] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         >
           🏆
         </motion.span>
-        <h1 className="font-display text-5xl font-extrabold drop-shadow-md">Leaderboard</h1>
+        <h1 className="font-display text-4xl font-extrabold drop-shadow-md sm:text-5xl">Leaderboard</h1>
         <p className="text-sm text-white/85">Updates live as everyone plays</p>
       </motion.div>
       <div className="relative z-10 w-full">

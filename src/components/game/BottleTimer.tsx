@@ -117,14 +117,15 @@ export function BottleTimer({
       role="timer"
       aria-label={`${secondsLeft} seconds left to answer`}
       className={cn(
-        "flex items-center gap-2 rounded-full py-1 pr-3 pl-1.5 transition-colors",
+        "flex shrink-0 items-center gap-1.5 rounded-full py-0.5 pr-2.5 pl-1 transition-colors",
+        "sm:gap-2 sm:py-1 sm:pr-3 sm:pl-1.5",
         danger ? "bg-red-500/85" : "bg-white/20",
         className,
       )}
     >
       <motion.svg
         viewBox="0 0 64 150"
-        className="h-12 w-auto"
+        className="h-10 w-auto sm:h-12"
         animate={danger && !still ? { rotate: [-6, 6, -6] } : { rotate: 0 }}
         transition={
           danger && !still
@@ -206,7 +207,7 @@ export function BottleTimer({
         />
       </motion.svg>
 
-      <span className="font-display text-xl font-bold tabular-nums text-white">
+      <span className="font-display text-lg font-bold tabular-nums text-white sm:text-xl">
         {secondsLeft}s
       </span>
     </div>

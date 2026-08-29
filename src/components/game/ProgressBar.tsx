@@ -32,7 +32,7 @@ function Footprint({ filled, flip }: { filled: boolean; flip: boolean }) {
   return (
     <svg
       viewBox="0 0 20 28"
-      className="h-4 w-auto"
+      className="h-3.5 w-auto sm:h-4"
       style={{ transform: `scaleX(${flip ? -1 : 1}) rotate(${flip ? 8 : -8}deg)` }}
       aria-hidden
     >
@@ -84,7 +84,7 @@ function CrawlingBaby({ still }: { still: boolean }) {
   return (
     <motion.svg
       viewBox="0 0 100 78"
-      className="h-12 w-auto drop-shadow-[0_3px_7px_rgba(0,0,0,0.32)]"
+      className="h-10 w-auto drop-shadow-[0_3px_7px_rgba(0,0,0,0.32)] sm:h-12"
       aria-hidden
     >
       {/* One small dip per beat — four per cycle, not one. */}
@@ -199,7 +199,7 @@ function WalkingBaby({ still }: { still: boolean }) {
   return (
     <motion.svg
       viewBox="0 0 64 78"
-      className="h-12 w-auto drop-shadow-[0_3px_7px_rgba(0,0,0,0.32)]"
+      className="h-10 w-auto drop-shadow-[0_3px_7px_rgba(0,0,0,0.32)] sm:h-12"
       aria-hidden
     >
       <motion.g
@@ -332,7 +332,7 @@ export function ProgressBar({
   const walking = round === "bonus";
 
   return (
-    <div className="flex w-full flex-col gap-1">
+    <div className="flex w-full shrink-0 flex-col gap-1">
       <div className="flex items-center justify-between text-xs font-bold text-white/90">
         <span>
           Baby {Math.min(answered + 1, total)} of {total}
@@ -342,7 +342,7 @@ export function ProgressBar({
         </span>
       </div>
 
-      <div className="relative h-12 w-full">
+      <div className="relative h-10 w-full sm:h-12">
         {/* The trail itself */}
         <div className="absolute inset-x-0 bottom-0 h-3 rounded-full bg-white/25" />
         <motion.div

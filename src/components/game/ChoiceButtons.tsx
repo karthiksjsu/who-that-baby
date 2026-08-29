@@ -19,7 +19,7 @@ export function ChoiceButtons({
   onChoose,
 }: ChoiceButtonsProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid w-full shrink-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
       {choices.map((name) => {
         const isSelected = selected === name;
         const isRevealed = correctName !== null;
@@ -35,7 +35,8 @@ export function ChoiceButtons({
             whileTap={{ scale: 0.96 }}
             whileHover={!isRevealed && !disabled ? { scale: 1.02 } : undefined}
             className={cn(
-              "rounded-2xl border-2 px-5 py-4 text-left text-lg font-semibold shadow-sm transition-colors",
+              "rounded-2xl border-2 px-4 py-3 text-left text-base font-semibold shadow-sm transition-colors",
+              "sm:px-5 sm:py-4 sm:text-lg",
               "border-border bg-white text-foreground",
               !isRevealed && !disabled && "hover:border-primary hover:bg-primary/5 hover:shadow-md",
               isSelected && !isRevealed && "border-primary bg-primary/10",

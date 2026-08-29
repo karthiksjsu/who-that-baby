@@ -28,18 +28,18 @@ export default function HomePage() {
   }, [playerName, status, router]);
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-6 py-16 text-white">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-x-clip bg-party-gradient px-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))] text-white sm:py-16">
       <PartyBackdrop />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 flex w-full max-w-md flex-col items-center gap-8 text-center"
+        className="relative z-10 flex w-full max-w-md flex-col items-center gap-6 text-center sm:gap-8"
       >
         <div className="flex flex-col items-center gap-4">
           <motion.span
-            className="text-9xl drop-shadow-xl"
+            className="text-7xl drop-shadow-xl sm:text-9xl"
             initial={{ scale: 0, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }}
@@ -52,16 +52,16 @@ export default function HomePage() {
               🍼
             </motion.span>
           </motion.span>
-          <h1 className="font-display text-6xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-7xl">
+          <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance drop-shadow-md sm:text-7xl">
             Who&apos;s That Baby?
           </h1>
-          <p className="max-w-xs text-balance text-lg text-white/90">
+          <p className="max-w-xs text-balance text-base text-white/90 sm:text-lg">
             Guess which grown-up each baby photo belongs to. Fastest correct
             guesses win the most points!
           </p>
         </div>
 
-        <div className="glass-card w-full rounded-3xl p-6 text-foreground sm:p-8">
+        <div className="glass-card w-full rounded-3xl p-5 text-foreground sm:p-8">
           {!checkedSession ? null : playerName ? (
             <WaitingState name={playerName} status={status?.status} />
           ) : (

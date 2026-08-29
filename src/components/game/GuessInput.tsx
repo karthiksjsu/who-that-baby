@@ -33,7 +33,7 @@ export function GuessInput({ cardId, disabled, isCorrect, correctName, onSubmit 
   const revealed = correctName !== null;
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3">
+    <form onSubmit={handleSubmit} className="flex w-full shrink-0 flex-col gap-3">
       <motion.div
         animate={
           revealed

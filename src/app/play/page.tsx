@@ -28,9 +28,13 @@ export default function PlayPage() {
   }, [status, router]);
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-4 py-10">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-x-clip bg-party-gradient px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-10">
       <PartyBackdrop />
-      <div className="relative z-10 w-full">{token ? <PlayFlow token={token} /> : null}</div>
+      {/* Grows to fill the phone screen so the game can size the photo to
+          whatever height is left over, rather than overflowing the fold. */}
+      <div className="relative z-10 flex w-full flex-1 flex-col justify-center">
+        {token ? <PlayFlow token={token} /> : null}
+      </div>
     </main>
   );
 }

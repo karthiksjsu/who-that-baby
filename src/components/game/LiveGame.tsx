@@ -87,9 +87,14 @@ export function LiveGame({ token }: { token: string }) {
   const lockedIn = state.my_guess !== null;
 
   return (
-    <div className="flex w-full max-w-md flex-col items-center gap-6">
-      <div className="flex w-full items-center justify-between gap-3">
-        <span className="rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold tracking-wide text-white uppercase">
+    /*
+     * A column that fits the phone screen: everything but the photo is sized
+     * by its content, and the photo takes what is left, so the answer buttons
+     * stay above the fold while a player is on the clock.
+     */
+    <div className="flex w-full max-w-md flex-1 flex-col items-center gap-3 sm:gap-6">
+      <div className="flex w-full shrink-0 items-center justify-between gap-2 sm:gap-3">
+        <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold tracking-wide whitespace-nowrap text-white uppercase sm:px-4 sm:py-1.5 sm:text-sm">
           {state.round === "choice" ? "🎯 Crawl round" : "✨ Walk round"}
         </span>
         {deadlineLocal !== null && (
@@ -108,7 +113,9 @@ export function LiveGame({ token }: { token: string }) {
         round={state.round}
       />
 
-      <div className="relative aspect-[3/4] w-full">
+      {/* Fills the leftover height on a phone, floors at a size still worth
+          looking at; back to a fixed portrait card once there is room. */}
+      <div className="relative min-h-[36svh] w-full flex-1 sm:aspect-[3/4] sm:min-h-0 sm:flex-none">
         <AnimatePresence>
           <BabyCard
             key={state.card.id}
@@ -132,13 +139,13 @@ export function LiveGame({ token }: { token: string }) {
       </div>
 
       {state.card.clue && (
-        <p className="rounded-full bg-white/20 px-5 py-2 text-center text-base font-medium text-white shadow-sm">
+        <p className="shrink-0 rounded-full bg-white/20 px-4 py-1.5 text-center text-sm font-medium text-white shadow-sm sm:px-5 sm:py-2 sm:text-base">
           💡 {state.card.clue}
         </p>
       )}
 
       {error && (
-        <p className="glass-card rounded-2xl px-4 py-2 text-sm text-red-600">{error}</p>
+        <p className="glass-card shrink-0 rounded-2xl px-4 py-2 text-sm text-red-600">{error}</p>
       )}
 
       {state.round === "choice" && state.card.choices ? (

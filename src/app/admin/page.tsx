@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-party-gradient px-6">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-x-clip bg-party-gradient px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <PartyBackdrop />
       <form
         onSubmit={handleSubmit}
