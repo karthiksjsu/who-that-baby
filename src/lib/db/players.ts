@@ -3,7 +3,16 @@ import { dbError } from "@/lib/db/error";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { Player } from "@/types/db";
 
+/**
+ * The column is a uuid, so anything else is not a token that could ever have
+ * been issued — and handing Postgres a malformed one is a 500 rather than the
+ * "no such player" it actually is. Junk in the header is a stranger poking at
+ * the endpoint; answer it like the unknown player it is.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getPlayerByToken(clientToken: string): Promise<Player | null> {
+  if (!UUID_RE.test(clientToken)) return null;
   const { data, error } = await supabaseAdmin()
     .from("players")
     .select("*")

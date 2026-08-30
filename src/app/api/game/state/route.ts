@@ -24,8 +24,15 @@ export const revalidate = 0;
  * is up, only renders what this returns.
  */
 export const GET = apiRoute(async (request) => {
+  // The token is the player's whole identity, so it travels in a header:
+  // query strings end up in access logs, browser history and the screenshots
+  // guests cheerfully send each other during a party. The `?token=` form is
+  // still read because a phone that was mid-poll when this deployed is still
+  // asking that way, and dropping it would freeze that guest's card until
+  // they thought to reload.
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
+  const token =
+    request.headers.get("x-player-token") ?? url.searchParams.get("token") ?? "";
   if (!token) {
     return NextResponse.json({ error: "Missing token." }, { status: 400 });
   }

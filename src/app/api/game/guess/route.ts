@@ -19,8 +19,10 @@ export const POST = apiRoute(async (request) => {
   const body = await request.json().catch(() => ({}));
   const token = typeof body.client_token === "string" ? body.client_token : "";
   const babyId = typeof body.baby_id === "string" ? body.baby_id : "";
+  // Capped at the same length a name can be, so the free-text round cannot be
+  // used to push arbitrarily large strings into the table.
   const guessedName =
-    typeof body.guessed_name === "string" ? body.guessed_name.trim() : "";
+    typeof body.guessed_name === "string" ? body.guessed_name.trim().slice(0, 80) : "";
 
   if (!token || !babyId || !guessedName) {
     return NextResponse.json({ error: "Missing fields." }, { status: 400 });

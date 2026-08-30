@@ -55,10 +55,10 @@ export function useLiveGame(token: string | null) {
   const fetchState = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(
-        `/api/game/state?token=${encodeURIComponent(token)}`,
-        { cache: "no-store" }
-      );
+      const res = await fetch("/api/game/state", {
+        cache: "no-store",
+        headers: { "x-player-token": token },
+      });
       if (res.status === 404) {
         clearPlayerSession();
         setExpired(true);

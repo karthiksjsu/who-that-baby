@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { savePlayerSession } from "@/lib/player-session";
+import { getPlayerToken, savePlayerSession } from "@/lib/player-session";
 
 export function JoinForm({ onJoined }: { onJoined: (name: string) => void }) {
   const [name, setName] = useState("");
@@ -18,16 +18,17 @@ export function JoinForm({ onJoined }: { onJoined: (name: string) => void }) {
 
     setLoading(true);
     try {
-      const token = crypto.randomUUID();
+      // Any token already on this device is sent so a returning guest lands
+      // back on their own game; a new one is issued by the server, never here.
       const res = await fetch("/api/players", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmed, client_token: token }),
+        body: JSON.stringify({ name: trimmed, client_token: getPlayerToken() ?? undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
 
-      savePlayerSession(token, data.player.name, data.player.id);
+      savePlayerSession(data.player.client_token, data.player.name, data.player.id);
       onJoined(data.player.name);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't join right now.");
