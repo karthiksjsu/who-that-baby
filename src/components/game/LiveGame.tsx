@@ -115,7 +115,7 @@ export function LiveGame({ token }: { token: string }) {
 
       {/* Fills the leftover height on a phone, floors at a size still worth
           looking at; back to a fixed portrait card once there is room. */}
-      <div className="relative min-h-[36svh] w-full flex-1 sm:aspect-[3/4] sm:min-h-0 sm:flex-none">
+      <div className="relative min-h-[36svh] w-full flex-1 sm:aspect-square sm:min-h-0 sm:flex-none">
         <AnimatePresence>
           <BabyCard
             key={state.card.id}

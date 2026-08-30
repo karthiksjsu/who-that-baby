@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { PhotoCropper } from "@/components/admin/PhotoCropper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,19 +16,42 @@ export function BabyForm({
   onCreated: (baby: Baby) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  /** The photo as picked, shown in the cropper until it is framed. */
+  const [rawUrl, setRawUrl] = useState<string | null>(null);
+  const [framed, setFramed] = useState<{ file: File; url: string } | null>(null);
+  /** Set when the browser can't decode the photo — HEIC outside Safari, say. */
+  const [unframeable, setUnframeable] = useState(false);
   const [name, setName] = useState("");
   const [clue, setClue] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Object URLs outlive the render that made them, so let them go by hand.
+  useEffect(() => () => {
+    if (rawUrl) URL.revokeObjectURL(rawUrl);
+  }, [rawUrl]);
+  useEffect(() => () => {
+    if (framed) URL.revokeObjectURL(framed.url);
+  }, [framed]);
+
   function handleFileChange() {
     const file = fileRef.current?.files?.[0];
-    setPreview(file ? URL.createObjectURL(file) : null);
+    setFramed(null);
+    setUnframeable(false);
+    setRawUrl(file ? URL.createObjectURL(file) : null);
+  }
+
+  function clearPhoto() {
+    setRawUrl(null);
+    setFramed(null);
+    setUnframeable(false);
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const file = fileRef.current?.files?.[0];
+    // The framed copy is what gets uploaded; the original is only ever the
+    // fallback for a photo the browser could not load into a canvas.
+    const file = framed?.file ?? fileRef.current?.files?.[0];
     if (!file || !name.trim()) return;
 
     setLoading(true);
@@ -44,8 +68,7 @@ export function BabyForm({
       onCreated(data.baby as Baby);
       setName("");
       setClue("");
-      setPreview(null);
-      if (fileRef.current) fileRef.current.value = "";
+      clearPhoto();
       toast.success("Baby added!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -63,9 +86,9 @@ export function BabyForm({
 
       <div className="flex items-center gap-4">
         <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted">
-          {preview ? (
+          {framed ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="Preview" className="size-full object-cover" />
+            <img src={framed.url} alt="Framed preview" className="size-full object-cover" />
           ) : (
             <span className="text-2xl">👶</span>
           )}
@@ -78,10 +101,31 @@ export function BabyForm({
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            required
+            required={!framed}
           />
         </div>
       </div>
+
+      {/* Framing comes straight after picking the file, while the photo is
+          still the thing being thought about. */}
+      {rawUrl && !framed && (
+        <PhotoCropper
+          src={rawUrl}
+          onCancel={clearPhoto}
+          onCropped={(file) => setFramed({ file, url: URL.createObjectURL(file) })}
+          onUnavailable={() => setUnframeable(true)}
+        />
+      )}
+
+      {framed && (
+        <button
+          type="button"
+          onClick={() => setFramed(null)}
+          className="self-start text-sm font-medium text-primary hover:underline"
+        >
+          Reframe photo
+        </button>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="correct_name">Who is this baby, all grown up?</Label>
@@ -108,7 +152,11 @@ export function BabyForm({
         </div>
       )}
 
-      <Button type="submit" disabled={loading || !name.trim()} className="h-11">
+      <Button
+        type="submit"
+        disabled={loading || !name.trim() || (!!rawUrl && !framed && !unframeable)}
+        className="h-11"
+      >
         {loading ? "Uploading…" : "Add baby"}
       </Button>
     </form>

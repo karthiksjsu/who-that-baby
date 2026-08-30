@@ -20,6 +20,12 @@ export interface Baby {
   round: GameRound;
   display_order: number;
   created_at: string;
+  /**
+   * Wrong answers the host pinned for this card. Null — the default — means
+   * the card draws them from the other babies' names instead. Never includes
+   * the correct name: that is added and shuffled in when the card is served.
+   */
+  distractors: string[] | null;
 }
 
 export interface Player {

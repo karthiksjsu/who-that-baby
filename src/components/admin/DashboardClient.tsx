@@ -20,6 +20,9 @@ export function DashboardClient({
 
   const mcqBabies = babies.filter((b) => b.round === "choice");
   const bonusBabies = babies.filter((b) => b.round === "bonus");
+  // Both rounds' names are fair game as wrong answers, so the pool is every
+  // baby rather than only the ones in this section.
+  const allNames = babies.map((b) => b.correct_name);
 
   function replaceGroup(round: "choice" | "bonus", next: Baby[]) {
     setBabies((prev) => [...prev.filter((b) => b.round !== round), ...next]);
@@ -76,6 +79,9 @@ export function DashboardClient({
             emptyLabel="No crawl-round babies yet. Upload one to the left!"
             moveLabel="Move to walk round"
             showClue={false}
+            showOptions
+            allNames={allNames}
+            choicesCount={initialSettings.choices_count}
             onChange={(next) => replaceGroup("choice", next)}
             onMoveRound={(id) => moveRound(id, "bonus")}
           />
@@ -99,6 +105,9 @@ export function DashboardClient({
             emptyLabel="No walk-round babies yet. Upload one to the left!"
             moveLabel="Move to crawl round"
             showClue
+            showOptions={false}
+            allNames={allNames}
+            choicesCount={initialSettings.choices_count}
             onChange={(next) => replaceGroup("bonus", next)}
             onMoveRound={(id) => moveRound(id, "choice")}
           />

@@ -32,20 +32,29 @@ function seededShuffle<T>(items: T[], seed: number): T[] {
 
 /**
  * Builds the multiple-choice list for one baby card: the correct name plus
- * up to `choicesCount - 1` distractors drawn from the other babies' real
- * names, deterministically shuffled per (player, baby) so a reload doesn't
- * reshuffle the options mid-answer.
+ * up to `choicesCount - 1` wrong answers, deterministically shuffled per baby
+ * so a reload doesn't reshuffle the options mid-answer.
+ *
+ * The wrong answers are the host's if they pinned any for this card, and drawn
+ * from the other babies' names otherwise. Either way the correct name is added
+ * here rather than trusted from storage, and anything in `pinned` that
+ * duplicates it — or duplicates another option — is dropped, so a card can
+ * never be served with its answer missing or listed twice.
  */
 export function buildChoices(
   correctName: string,
   otherNames: string[],
   choicesCount: number,
-  seedInput: string
+  seedInput: string,
+  pinned?: string[] | null
 ): string[] {
-  const pool = Array.from(new Set(otherNames.filter((n) => n !== correctName)));
   const seed = hashSeed(seedInput);
-  const shuffledPool = seededShuffle(pool, seed);
-  const distractors = shuffledPool.slice(0, Math.max(0, choicesCount - 1));
-  const choices = seededShuffle([correctName, ...distractors], seed + 1);
-  return choices;
+  const clean = (names: string[]) =>
+    Array.from(new Set(names.map((n) => n.trim()).filter((n) => n && n !== correctName)));
+
+  const wrong = pinned?.length
+    ? clean(pinned)
+    : seededShuffle(clean(otherNames), seed).slice(0, Math.max(0, choicesCount - 1));
+
+  return seededShuffle([correctName, ...wrong], seed + 1);
 }

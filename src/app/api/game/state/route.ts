@@ -62,7 +62,13 @@ export const GET = apiRoute(async (request) => {
         answered: false,
         choices:
           pos.round === "choice"
-            ? buildChoices(baby.correct_name, allNames, settings.choices_count, baby.id)
+            ? buildChoices(
+                baby.correct_name,
+                allNames,
+                settings.choices_count,
+                baby.id,
+                baby.distractors
+              )
             : null,
       }
     : null;

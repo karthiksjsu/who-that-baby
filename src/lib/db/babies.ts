@@ -45,7 +45,12 @@ export async function createBaby(input: {
 
 export async function updateBaby(
   id: string,
-  patch: Partial<Pick<Baby, "correct_name" | "clue" | "round" | "photo_url" | "display_order">>
+  patch: Partial<
+    Pick<
+      Baby,
+      "correct_name" | "clue" | "round" | "photo_url" | "display_order" | "distractors"
+    >
+  >
 ): Promise<Baby> {
   const { data, error } = await supabaseAdmin()
     .from("babies")
