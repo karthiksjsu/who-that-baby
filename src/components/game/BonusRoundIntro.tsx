@@ -19,8 +19,8 @@ export function BonusRoundIntro() {
       <div className="flex flex-col gap-1">
         <h2 className="font-display text-3xl font-bold">Time to walk!</h2>
         <p className="text-sm text-muted-foreground">
-          You crawled through the easy ones. No multiple choice from here — type each name
-          from scratch for extra points.
+          You crawled through the easy ones. No multiple choice from here — type each
+          name from scratch. Every one you get right is worth 25 instead of 10.
         </p>
       </div>
       <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">

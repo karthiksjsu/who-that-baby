@@ -56,8 +56,8 @@ export default function HomePage() {
             Who&apos;s That Baby?
           </h1>
           <p className="max-w-xs text-balance text-base text-white/90 sm:text-lg">
-            Guess which grown-up each baby photo belongs to. Fastest correct
-            guesses win the most points!
+            Guess which grown-up each baby photo belongs to. Most right answers
+            wins — speed only breaks a tie.
           </p>
         </div>
 

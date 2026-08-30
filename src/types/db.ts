@@ -26,6 +26,13 @@ export interface Baby {
    * the correct name: that is added and shuffled in when the card is served.
    */
   distractors: string[] | null;
+  /**
+   * Extra spellings the walk round accepts as correct, on top of the exact
+   * name, which is always accepted and never stored here. Null means the
+   * exact name only. Inert in the multiple-choice round, where a player can
+   * only submit one of the names they were shown.
+   */
+  aliases: string[] | null;
 }
 
 export interface Player {

@@ -7,13 +7,9 @@ import { getGameSettings, positionOf } from "@/lib/db/settings";
 import { clampResponseTime, scoreGuess } from "@/lib/game/scoring";
 import { DEADLINE_GRACE_MS } from "@/lib/game/constants";
 import { acceptsAnswers, deadlineMs } from "@/lib/game/schedule";
+import { matchesAnswer } from "@/lib/game/aliases";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { LEADERBOARD_CHANNEL, LEADERBOARD_EVENT } from "@/lib/realtime/channels";
-
-/** Case/whitespace-insensitive so "priya sharma" matches "Priya Sharma". */
-function normalize(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, " ");
-}
 
 export const POST = apiRoute(async (request) => {
   const body = await request.json().catch(() => ({}));
@@ -67,11 +63,20 @@ export const POST = apiRoute(async (request) => {
     return NextResponse.json({ error: "Time's up for that card." }, { status: 409 });
   }
 
-  // Measured server-side. A client that reported its own elapsed time could
-  // simply claim zero and collect the full speed bonus every round.
+  // Measured server-side rather than trusted from the client. It no longer
+  // affects the score, but the leaderboard breaks ties on cumulative response
+  // time, so a client reporting its own elapsed time could claim zero and win
+  // every tie.
   const responseTimeMs = clampResponseTime(Date.now() - startedAt);
-  const isCorrect = normalize(baby.correct_name) === normalize(guessedName);
-  const points = scoreGuess(isCorrect, responseTimeMs);
+  /*
+   * The multiple-choice round can only ever submit one of the names it was
+   * shown, so aliases are inert there. They exist for the walk round, where
+   * the player types from memory and "Sahana" should count for "Sahana
+   * Gautam" — but only on the cards where the host confirmed it is not
+   * ambiguous.
+   */
+  const isCorrect = matchesAnswer(guessedName, baby.correct_name, baby.aliases);
+  const points = scoreGuess(isCorrect, pos.round);
 
   const { data: inserted, error: insertError } = await supabaseAdmin()
     .from("guesses")

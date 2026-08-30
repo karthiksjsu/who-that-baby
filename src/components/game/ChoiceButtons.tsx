@@ -15,31 +15,47 @@ interface ChoiceButtonsProps {
  * One accent per slot, so the answers read as a set of cards rather than a
  * stack of white boxes.
  *
- * The colours are decoration and nothing else — they are fixed to the slot,
- * not to the name, and the same name keeps whichever slot it was dealt. Only
- * the reveal colours carry meaning: green on the right answer, red on a wrong
- * pick, and those override the accent entirely.
+ * The card hues are lifted off --party-gradient in globals.css — 340, 315,
+ * 290 and 265 are four evenly spaced steps along the same arc the background
+ * sweeps through, so the answers sit in the page rather than on top of it.
+ * They are held at high lightness and low chroma (0.95 / 0.05) because the
+ * gradient behind them is fully saturated; anything stronger competes with it.
+ *
+ * The chips stay on the original Tailwind palette. They are the one part of a
+ * card that has a job beyond decoration — across a noisy room a guest finds
+ * their answer by the colour of the circle before they read the letter — so
+ * they are deliberately more saturated and more distinct from each other than
+ * the card hues are.
+ *
+ * All of it is still decoration in the sense that matters: the colours are
+ * fixed to the slot, not to the name, and the same name keeps whichever slot
+ * it was dealt. Only the reveal colours carry meaning — green on the right
+ * answer, red on a wrong pick — and those override the accent entirely.
  */
 const ACCENTS = [
   {
-    card: "from-rose-100 to-pink-200",
+    card: "bg-[oklch(0.95_0.05_340)]",
+    ink: "text-[oklch(0.31_0.09_340)]",
+    edge: "ring-[oklch(0.87_0.08_340)]",
     chip: "from-pink-400 to-rose-500",
-    edge: "ring-pink-300/70",
   },
   {
-    card: "from-amber-100 to-orange-200",
+    card: "bg-[oklch(0.95_0.05_315)]",
+    ink: "text-[oklch(0.31_0.09_315)]",
+    edge: "ring-[oklch(0.87_0.08_315)]",
     chip: "from-amber-400 to-orange-500",
-    edge: "ring-amber-300/70",
   },
   {
-    card: "from-sky-100 to-cyan-200",
+    card: "bg-[oklch(0.95_0.05_290)]",
+    ink: "text-[oklch(0.31_0.09_290)]",
+    edge: "ring-[oklch(0.87_0.08_290)]",
     chip: "from-sky-400 to-cyan-500",
-    edge: "ring-sky-300/70",
   },
   {
-    card: "from-violet-100 to-purple-200",
+    card: "bg-[oklch(0.95_0.05_265)]",
+    ink: "text-[oklch(0.31_0.09_265)]",
+    edge: "ring-[oklch(0.87_0.08_265)]",
     chip: "from-violet-400 to-purple-500",
-    edge: "ring-violet-300/70",
   },
 ];
 
@@ -76,15 +92,15 @@ export function ChoiceButtons({
             whileTap={{ scale: 0.96 }}
             whileHover={!isRevealed && !disabled ? { scale: 1.02 } : undefined}
             className={cn(
-              "group relative flex items-center gap-2.5 rounded-2xl bg-gradient-to-br p-2",
+              "group relative flex items-center gap-2.5 rounded-2xl p-2",
               "shadow-md ring-1 ring-inset transition-colors",
               "sm:gap-3 sm:p-2.5",
               accent.card,
               accent.edge,
               !isRevealed && !disabled && "hover:shadow-lg",
               isSelected && !isRevealed && "ring-2 ring-primary shadow-lg",
-              isCorrectChoice && "from-emerald-50 to-green-100 ring-2 ring-emerald-500",
-              isWrongSelected && "from-rose-50 to-red-100 ring-2 ring-red-500",
+              isCorrectChoice && "bg-emerald-100 ring-2 ring-emerald-500",
+              isWrongSelected && "bg-red-100 ring-2 ring-red-500",
               disabled && !isCorrectChoice && !isWrongSelected && "opacity-60"
             )}
           >
@@ -106,8 +122,9 @@ export function ChoiceButtons({
 
             <span
               className={cn(
-                "min-w-0 flex-1 text-left text-sm font-bold break-words text-foreground",
+                "min-w-0 flex-1 text-left text-sm font-bold break-words",
                 "sm:text-lg",
+                accent.ink,
                 isCorrectChoice && "text-emerald-800",
                 isWrongSelected && "text-red-800"
               )}

@@ -11,11 +11,14 @@ import {
   Check,
   Crop,
   ListChecks,
+  SpellCheck,
   Trash2,
+  TriangleAlert,
   X,
 } from "lucide-react";
 import { PhotoCropper } from "@/components/admin/PhotoCropper";
 import { buildChoices } from "@/lib/game/distractors";
+import { normalize, suggestAliases } from "@/lib/game/aliases";
 import type { Baby } from "@/types/db";
 
 export function BabyList({
@@ -24,6 +27,7 @@ export function BabyList({
   moveLabel,
   showClue,
   showOptions,
+  showAliases,
   allNames,
   choicesCount,
   onChange,
@@ -35,6 +39,11 @@ export function BabyList({
   showClue: boolean;
   /** Only the multiple-choice round has options to pick. */
   showOptions: boolean;
+  /**
+   * Only the walk round has answers to loosen — the choice round can only
+   * submit a name it already displayed.
+   */
+  showAliases?: boolean;
   /** Every baby's name, including the ones in the other round. */
   allNames: string[];
   choicesCount: number;
@@ -46,9 +55,12 @@ export function BabyList({
   const [editClue, setEditClue] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   /** At most one panel is open at a time — the rows are small. */
-  const [panel, setPanel] = useState<{ id: string; kind: "frame" | "options" } | null>(null);
+  const [panel, setPanel] = useState<{
+    id: string;
+    kind: "frame" | "options" | "aliases";
+  } | null>(null);
 
-  function togglePanel(id: string, kind: "frame" | "options") {
+  function togglePanel(id: string, kind: "frame" | "options" | "aliases") {
     setPanel((prev) => (prev?.id === id && prev.kind === kind ? null : { id, kind }));
   }
 
@@ -151,6 +163,26 @@ export function BabyList({
     }
   }
 
+  async function saveAliases(baby: Baby, aliases: string[] | null) {
+    setBusyId(baby.id);
+    try {
+      const res = await fetch(`/api/admin/babies/${baby.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aliases }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Couldn't save those answers.");
+      onChange(babies.map((b) => (b.id === baby.id ? (data.baby as Baby) : b)));
+      setPanel(null);
+      toast.success(aliases ? "Accepted answers saved." : "Exact name only.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't save those answers.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   if (babies.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -209,6 +241,11 @@ export function BabyList({
                     Options: {baby.distractors.join(", ")}
                   </span>
                 ) : null}
+                {showAliases && baby.aliases?.length ? (
+                  <span className="truncate text-xs text-muted-foreground">
+                    Also accepts: {baby.aliases.join(", ")}
+                  </span>
+                ) : null}
               </button>
             )}
 
@@ -252,6 +289,17 @@ export function BabyList({
                       onClick={() => togglePanel(baby.id, "options")}
                     >
                       <ListChecks className="size-4" />
+                    </Button>
+                  )}
+                  {showAliases && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      title="Accepted answers"
+                      onClick={() => togglePanel(baby.id, "aliases")}
+                    >
+                      <SpellCheck className="size-4" />
                     </Button>
                   )}
                   <Button
@@ -318,6 +366,16 @@ export function BabyList({
               onSave={(distractors) => saveOptions(baby, distractors)}
             />
           )}
+
+          {panel?.id === baby.id && panel.kind === "aliases" && (
+            <AnswersEditor
+              baby={baby}
+              allNames={allNames}
+              busy={busyId === baby.id}
+              onCancel={() => setPanel(null)}
+              onSave={(aliases) => saveAliases(baby, aliases)}
+            />
+          )}
         </li>
       ))}
     </ul>
@@ -351,18 +409,53 @@ function OptionsEditor({
   const suggested = buildChoices(baby.correct_name, allNames, choicesCount, baby.id).filter(
     (n) => n !== baby.correct_name
   );
-  const [values, setValues] = useState<string[]>(() =>
-    Array.from({ length: slots }, (_, i) => baby.distractors?.[i] ?? suggested[i] ?? "")
+
+  /*
+   * Selection, not ordering. The server shuffles the options into a fresh
+   * order for every player, so any effort the host spends arranging them is
+   * thrown away — which is why this is a set of toggles rather than slots to
+   * drag names into. Tapping also survives being done one-handed on a phone
+   * at the party, which dragging does not.
+   */
+  const [picked, setPicked] = useState<string[]>(
+    () => baby.distractors ?? suggested.slice(0, slots)
   );
-  const listId = `names-${baby.id}`;
-  const others = Array.from(new Set(allNames.filter((n) => n !== baby.correct_name)));
+  const [typed, setTyped] = useState("");
+
+  /** Uploaded names, minus this card's answer, plus any pinned write-ins. */
+  const pool = Array.from(
+    new Set([...allNames.filter((n) => n !== baby.correct_name), ...picked])
+  );
+  const full = picked.length >= slots;
+
+  function toggle(name: string) {
+    setPicked((prev) =>
+      prev.includes(name)
+        ? prev.filter((n) => n !== name)
+        : prev.length < slots
+          ? [...prev, name]
+          : prev
+    );
+  }
+
+  function addTyped() {
+    const name = typed.trim();
+    if (!name || full || picked.includes(name) || name === baby.correct_name) return;
+    setPicked((prev) => [...prev, name]);
+    setTyped("");
+  }
 
   return (
     <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
-      <p className="text-sm font-medium">
-        Options for this photo
-        {baby.distractors?.length ? "" : " (suggested)"}
-      </p>
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-sm font-medium">
+          Options for this photo
+          {baby.distractors?.length ? "" : " (suggested)"}
+        </p>
+        <p className="shrink-0 text-xs text-muted-foreground">
+          {picked.length} of {slots} picked
+        </p>
+      </div>
 
       <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
         <Check className="size-4 shrink-0" />
@@ -370,37 +463,68 @@ function OptionsEditor({
         <span className="ml-auto shrink-0 text-xs">the answer</span>
       </div>
 
-      <datalist id={listId}>
-        {others.map((n) => (
-          <option key={n} value={n} />
-        ))}
-      </datalist>
+      <div className="flex flex-wrap gap-1.5">
+        {pool.map((name) => {
+          const on = picked.includes(name);
+          return (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={on}
+              /* A full set greys out what is not already chosen rather than
+                 silently ignoring the tap. */
+              disabled={busy || (full && !on)}
+              onClick={() => toggle(name)}
+              className={
+                on
+                  ? "flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+                  : "flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm text-muted-foreground disabled:opacity-40"
+              }
+            >
+              {on && <Check className="size-3.5 shrink-0" aria-hidden />}
+              <span className="max-w-40 truncate">{name}</span>
+            </button>
+          );
+        })}
+      </div>
 
-      {values.map((value, i) => (
+      <div className="flex gap-2">
         <Input
-          key={i}
-          value={value}
-          list={listId}
+          value={typed}
           maxLength={80}
-          placeholder={`Wrong answer ${i + 1}`}
-          onChange={(e) =>
-            setValues((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))
-          }
+          placeholder={full ? "All slots filled" : "Or type a name"}
+          disabled={busy || full}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addTyped();
+            }
+          }}
           className="h-9"
         />
-      ))}
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 shrink-0"
+          disabled={busy || full || !typed.trim()}
+          onClick={addTyped}
+        >
+          Add
+        </Button>
+      </div>
 
       <p className="text-xs text-muted-foreground">
-        Pick from the names you have uploaded, or type anyone you like. They are shuffled with
-        the answer for every player.
+        Tap {slots} wrong answers. They are shuffled with the real one for every player, so the
+        order here does not matter.
       </p>
 
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           className="h-9"
-          disabled={busy}
-          onClick={() => onSave(values.map((v) => v.trim()).filter(Boolean))}
+          disabled={busy || picked.length < slots}
+          onClick={() => onSave(picked)}
         >
           {busy ? "Saving…" : "Save options"}
         </Button>
@@ -412,6 +536,167 @@ function OptionsEditor({
           onClick={() => onSave(null)}
         >
           Use suggestions
+        </Button>
+        <Button type="button" variant="ghost" className="h-9" disabled={busy} onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Chooses what else counts as this person's name in the walk round.
+ *
+ * The exact name always wins and is shown here as fixed, so the host is only
+ * ever adding leniency, never able to remove the answer from its own card.
+ * Suggestions are withheld rather than offered when a shortening would also
+ * answer somebody else's photo — and the reason is shown, because a panel
+ * that silently offers nothing looks broken rather than careful.
+ */
+function AnswersEditor({
+  baby,
+  allNames,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  baby: Baby;
+  allNames: string[];
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (aliases: string[] | null) => void;
+}) {
+  const { suggested, withheld } = suggestAliases(baby.correct_name, allNames);
+  const [accepted, setAccepted] = useState<string[]>(() => baby.aliases ?? suggested);
+  const [typed, setTyped] = useState("");
+
+  /* Offered but not yet taken — so a removed suggestion can be put back. */
+  const available = suggested.filter(
+    (s) => !accepted.some((a) => normalize(a) === normalize(s))
+  );
+
+  function add(name: string) {
+    const clean = name.trim();
+    if (!clean) return;
+    if (normalize(clean) === normalize(baby.correct_name)) return;
+    if (accepted.some((a) => normalize(a) === normalize(clean))) return;
+    setAccepted((prev) => [...prev, clean]);
+  }
+
+  return (
+    <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
+      <p className="text-sm font-medium">Accepted answers</p>
+
+      <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <Check className="size-4 shrink-0" />
+        <span className="truncate">{baby.correct_name}</span>
+        <span className="ml-auto shrink-0 text-xs">always correct</span>
+      </div>
+
+      {accepted.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {accepted.map((name) => (
+            <button
+              key={name}
+              type="button"
+              disabled={busy}
+              title="Remove"
+              onClick={() =>
+                setAccepted((prev) => prev.filter((n) => n !== name))
+              }
+              className="flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+            >
+              <span className="max-w-40 truncate">{name}</span>
+              <X className="size-3.5 shrink-0" aria-hidden />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {available.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Suggested:</span>
+          {available.map((name) => (
+            <button
+              key={name}
+              type="button"
+              disabled={busy}
+              onClick={() => add(name)}
+              className="rounded-full bg-muted px-3 py-1.5 text-sm text-muted-foreground"
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {withheld.map(({ alias, collidesWith }) => (
+        <p
+          key={alias}
+          className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        >
+          <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+          <span>
+            Not suggesting <strong>{alias}</strong> — it would also answer{" "}
+            {collidesWith.join(" and ")}. Add it below only if you want that guess to
+            count here too.
+          </span>
+        </p>
+      ))}
+
+      <div className="flex gap-2">
+        <Input
+          value={typed}
+          maxLength={80}
+          placeholder="Another spelling or nickname"
+          disabled={busy}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add(typed);
+              setTyped("");
+            }
+          }}
+          className="h-9"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 shrink-0"
+          disabled={busy || !typed.trim()}
+          onClick={() => {
+            add(typed);
+            setTyped("");
+          }}
+        >
+          Add
+        </Button>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Capital letters and extra spaces are already ignored, so there is no need to add
+        those.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          className="h-9"
+          disabled={busy}
+          onClick={() => onSave(accepted.length ? accepted : null)}
+        >
+          {busy ? "Saving…" : "Save answers"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9"
+          disabled={busy || !baby.aliases?.length}
+          onClick={() => onSave(null)}
+        >
+          Exact name only
         </Button>
         <Button type="button" variant="ghost" className="h-9" disabled={busy} onClick={onCancel}>
           Cancel

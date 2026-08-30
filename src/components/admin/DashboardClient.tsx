@@ -106,6 +106,7 @@ export function DashboardClient({
             moveLabel="Move to crawl round"
             showClue
             showOptions={false}
+            showAliases
             allNames={allNames}
             choicesCount={initialSettings.choices_count}
             onChange={(next) => replaceGroup("bonus", next)}

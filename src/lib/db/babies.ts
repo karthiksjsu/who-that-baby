@@ -48,7 +48,13 @@ export async function updateBaby(
   patch: Partial<
     Pick<
       Baby,
-      "correct_name" | "clue" | "round" | "photo_url" | "display_order" | "distractors"
+      | "correct_name"
+      | "clue"
+      | "round"
+      | "photo_url"
+      | "display_order"
+      | "distractors"
+      | "aliases"
     >
   >
 ): Promise<Baby> {

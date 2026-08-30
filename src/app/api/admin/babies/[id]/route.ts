@@ -12,6 +12,7 @@ export const PATCH = apiRoute(
       clue?: string | null;
       round?: GameRound;
       distractors?: string[] | null;
+      aliases?: string[] | null;
     } = {};
     if (typeof body.correct_name === "string" && body.correct_name.trim()) {
       patch.correct_name = body.correct_name.trim();
@@ -33,6 +34,18 @@ export const PATCH = apiRoute(
       patch.distractors = names.length ? Array.from(new Set(names)) : null;
     } else if (body.distractors === null) {
       patch.distractors = null;
+    }
+    // Same shape, different meaning: an empty list here is "accept only the
+    // exact name", which is a real choice rather than a fallback, but null
+    // stores it more honestly than an empty array.
+    if (Array.isArray(body.aliases)) {
+      const names = body.aliases
+        .filter((n: unknown): n is string => typeof n === "string")
+        .map((n: string) => n.trim().slice(0, 80))
+        .filter(Boolean);
+      patch.aliases = names.length ? Array.from(new Set(names)) : null;
+    } else if (body.aliases === null) {
+      patch.aliases = null;
     }
     const baby = await updateBaby(id, patch);
     return NextResponse.json({ baby });
