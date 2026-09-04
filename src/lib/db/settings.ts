@@ -4,9 +4,20 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import type { GameSettings } from "@/types/db";
 import type { Position } from "@/lib/game/schedule";
 
-const COLUMNS =
-  "status, winner_revealed, choices_count, current_round, current_index, phase, " +
-  "phase_started_at, question_time_ms, reveal_ms, intermission_ms";
+/*
+ * Deliberately `*` rather than a column list.
+ *
+ * Naming the timing columns explicitly meant that a deploy landing before its
+ * migration did not merely disable the timings panel — PostgREST rejected the
+ * whole select, `getGameSettings` threw, and since every game request goes
+ * through it, the entire site returned the error page. That is a bad trade for
+ * three optional integers.
+ *
+ * With `*` the row comes back with whatever columns exist, and `timingsOf`
+ * fills in defaults per field for any that do not. An unmigrated database now
+ * costs the feature instead of the party.
+ */
+const COLUMNS = "*";
 
 export async function getGameSettings(): Promise<GameSettings> {
   const { data, error } = await supabaseAdmin()

@@ -5,6 +5,7 @@ import { getGuessesForPlayer } from "@/lib/db/guesses";
 import { getPlayerByToken } from "@/lib/db/players";
 import { getGameSettings, positionOf } from "@/lib/db/settings";
 import { buildChoices } from "@/lib/game/distractors";
+import { allocateDistractors } from "@/lib/game/allocation";
 import { deadlineMs, phaseDurationMs, timingsOf } from "@/lib/game/schedule";
 import type { LiveState } from "@/types/db";
 
@@ -64,11 +65,20 @@ export const GET = apiRoute(async (request) => {
   const deadline = deadlineMs(pos.phase, startedAt, timings, baby?.time_limit_ms);
   const phaseMs = phaseDurationMs(pos.phase, timings, baby?.time_limit_ms);
 
-  // Distractors are seeded off the baby alone, not the player. In a
-  // synchronized game everyone is answering the same question at the same
-  // moment, so handing two guests different distractor sets would hand them
-  // different difficulty for the same points.
-  const allNames = babies.map((b) => b.correct_name);
+  /*
+   * Wrong answers are a property of the deck, not of the player. In a
+   * synchronized game everyone answers the same question at the same moment,
+   * so handing two guests different option sets would hand them different
+   * difficulty for the same points.
+   *
+   * The allocation is computed across the whole round rather than card by
+   * card, which is what keeps any one name from being offered five times while
+   * another is never offered at all. It is pure and deterministic, so
+   * recomputing it on every request — including a player's mid-question
+   * reload — yields the identical set.
+   */
+  const allocation =
+    pos.round === "choice" ? allocateDistractors(babies, settings.choices_count) : null;
   const card = baby
     ? {
         id: baby.id,
@@ -80,10 +90,10 @@ export const GET = apiRoute(async (request) => {
           pos.round === "choice"
             ? buildChoices(
                 baby.correct_name,
-                allNames,
+                [],
                 settings.choices_count,
                 baby.id,
-                baby.distractors
+                allocation?.get(baby.id) ?? baby.distractors
               )
             : null,
       }

@@ -50,8 +50,18 @@ echo "All ${#VARS[@]} found."
 say "Building locally first (this is the risky step)"
 npm run build || die "Build failed. Send me the error above and stop here — deploying now would only fail the same way."
 
-say "Logging in to Vercel (a browser window will open)"
-npx --yes vercel@latest login
+# `vercel login` blocks on a browser callback, and it does that even when the
+# CLI already holds a valid token — which is every run after the first. Asking
+# who we are costs a second and skips the hang entirely.
+if WHO=$(npx --yes vercel@latest whoami 2>/dev/null) && [ -n "$WHO" ]; then
+  say "Already logged in to Vercel as $WHO"
+else
+  say "Logging in to Vercel (a browser window will open)"
+  echo "If no browser appears within a few seconds, press Ctrl-C and run"
+  echo "    npx vercel@latest login"
+  echo "on its own — it prints a URL you can paste into a browser by hand."
+  npx --yes vercel@latest login
+fi
 
 say "Linking this folder to a Vercel project"
 npx --yes vercel@latest link --yes

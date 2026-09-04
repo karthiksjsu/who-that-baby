@@ -63,7 +63,11 @@ export function DashboardClient({
 
       <TimingsPanel initial={timings} onSaved={(s) => setTimings(timingsOf(s))} />
 
-      <OptionDistribution babies={babies} choicesCount={initialSettings.choices_count} />
+      <OptionDistribution
+        babies={babies}
+        choicesCount={initialSettings.choices_count}
+        onChange={setBabies}
+      />
 
       <section className="flex flex-col gap-4">
         <div>

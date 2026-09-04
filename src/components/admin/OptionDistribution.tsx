@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { rebalancePins, type Rebalance } from "@/lib/game/allocation";
 import { optionDistribution } from "@/lib/game/distribution";
 import { cn } from "@/lib/utils";
 import type { Baby } from "@/types/db";
@@ -17,15 +20,61 @@ import type { Baby } from "@/types/db";
 export function OptionDistribution({
   babies,
   choicesCount,
+  onChange,
 }: {
   babies: Baby[];
   choicesCount: number;
+  onChange?: (babies: Baby[]) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<Rebalance | null>(null);
+  const [busy, setBusy] = useState(false);
   const report = useMemo(
     () => optionDistribution(babies, choicesCount),
     [babies, choicesCount]
   );
+  const choiceCardsList = useMemo(
+    () => babies.filter((b) => b.round === "choice"),
+    [babies]
+  );
+
+  /**
+   * Writes the proposed pins one card at a time.
+   *
+   * Sequential rather than parallel: these are the host's own edits being
+   * rewritten, and if the third request fails it matters that the first two
+   * already landed and the rest did not, rather than four of nine succeeding
+   * in an order nobody can reconstruct.
+   */
+  async function apply() {
+    if (!preview) return;
+    setBusy(true);
+    const next = new Map(babies.map((b) => [b.id, b]));
+    let done = 0;
+    try {
+      for (const [id, distractors] of preview.updated) {
+        const res = await fetch(`/api/admin/babies/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ distractors }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Couldn't save those options.");
+        next.set(id, data.baby as Baby);
+        done += 1;
+      }
+      onChange?.([...next.values()]);
+      setPreview(null);
+      toast.success(`Rebalanced ${done} ${done === 1 ? "card" : "cards"}.`);
+    } catch (err) {
+      onChange?.([...next.values()]);
+      toast.error(
+        `${err instanceof Error ? err.message : "Something failed"} — ${done} of ${preview.updated.size} saved.`
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (report.choiceCards === 0) return null;
 
@@ -69,6 +118,73 @@ export function OptionDistribution({
           answer, so the room only reads {neverDecoy.length === 1 ? "it" : "them"} on{" "}
           {neverDecoy.length === 1 ? "its" : "their"} own card: {neverDecoy.join(", ")}.
         </p>
+      )}
+
+      {pinnedCards > 0 && (
+        <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9"
+              disabled={busy}
+              onClick={() => setPreview(rebalancePins(choiceCardsList, choicesCount))}
+            >
+              Rebalance my pinned cards
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Shows the changes first — nothing is saved until you say so.
+            </span>
+          </div>
+
+          {preview && preview.swaps.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Nothing to change — your pinned cards are already spread evenly.
+            </p>
+          )}
+
+          {preview && preview.swaps.length > 0 && (
+            <>
+              <p className="text-sm">
+                <strong>{preview.swaps.length}</strong>{" "}
+                {preview.swaps.length === 1 ? "change" : "changes"} across{" "}
+                <strong>{preview.updated.size}</strong> pinned{" "}
+                {preview.updated.size === 1 ? "card" : "cards"}. Most-used name drops
+                from <strong>{preview.before.max}</strong> to{" "}
+                <strong>{preview.after.max}</strong>, least-used rises from{" "}
+                <strong>{preview.before.min}</strong> to{" "}
+                <strong>{preview.after.min}</strong>.
+              </p>
+              <ul className="max-h-48 overflow-y-auto text-sm">
+                {preview.swaps.map((s, i) => (
+                  <li
+                    key={`${s.cardId}-${s.from}-${s.to}-${i}`}
+                    className="flex flex-wrap items-baseline gap-x-2 py-0.5"
+                  >
+                    <span className="text-muted-foreground">{s.cardName}:</span>
+                    <span className="text-red-700 line-through">{s.from}</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="font-medium text-emerald-700">{s.to}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" className="h-9" disabled={busy} onClick={apply}>
+                  {busy ? "Saving…" : `Apply ${preview.swaps.length} changes`}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-9"
+                  disabled={busy}
+                  onClick={() => setPreview(null)}
+                >
+                  Discard
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {open && (

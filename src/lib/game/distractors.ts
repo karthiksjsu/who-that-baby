@@ -1,5 +1,5 @@
 /** Small deterministic string hash -> 32-bit seed. */
-function hashSeed(input: string): number {
+export function hashSeed(input: string): number {
   let h = 2166136261;
   for (let i = 0; i < input.length; i++) {
     h ^= input.charCodeAt(i);
@@ -20,7 +20,7 @@ function mulberry32(seed: number) {
   };
 }
 
-function seededShuffle<T>(items: T[], seed: number): T[] {
+export function seededShuffle<T>(items: T[], seed: number): T[] {
   const rand = mulberry32(seed);
   const arr = [...items];
   for (let i = arr.length - 1; i > 0; i--) {

@@ -1,3 +1,4 @@
+import { allocateDistractors } from "@/lib/game/allocation";
 import { buildChoices } from "@/lib/game/distractors";
 import type { Baby } from "@/types/db";
 
@@ -44,12 +45,12 @@ export function optionDistribution(
 ): DistributionReport {
   const choice = babies.filter((b) => b.round === "choice");
   /*
-   * The decoy pool is every name in the game, both rounds, matching what the
-   * state route passes in. A walk-round guest's name can turn up as a wrong
-   * answer on a crawl-round card even though they have no card of their own
-   * there.
+   * Only crawl-round names are eligible as wrong answers, because the state
+   * route fetches `listBabies(pos.round)` and draws the pool from that. A
+   * walk-round guest's name never appears as an option on a crawl card, so
+   * counting it here would report sets the game will not serve.
    */
-  const allNames = babies.map((b) => b.correct_name);
+  const allocation = allocateDistractors(choice, choicesCount);
 
   const usage = new Map<string, NameUsage>();
   const ensure = (name: string, bonusOnly: boolean): NameUsage => {
@@ -67,10 +68,10 @@ export function optionDistribution(
   for (const card of choice) {
     const options = buildChoices(
       card.correct_name,
-      allNames,
+      [],
       choicesCount,
       card.id,
-      card.distractors
+      allocation.get(card.id) ?? card.distractors
     );
     for (const option of options) {
       const row = ensure(option, false);
