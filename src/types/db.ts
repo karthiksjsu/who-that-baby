@@ -10,7 +10,21 @@ export interface GameSettings {
   current_index: number;
   phase: "idle" | "question" | "reveal" | "intermission" | "finished";
   phase_started_at: string | null;
+  /**
+   * Default phase lengths for the whole game. A card may override the answer
+   * clock with its own `time_limit_ms`; reveal and intermission are always
+   * these.
+   */
+  question_time_ms: number;
+  reveal_ms: number;
+  intermission_ms: number;
 }
+
+/** The phase lengths in force, before any per-card override. */
+export type Timings = Pick<
+  GameSettings,
+  "question_time_ms" | "reveal_ms" | "intermission_ms"
+>;
 
 export interface Baby {
   id: string;
@@ -33,6 +47,11 @@ export interface Baby {
    * only submit one of the names they were shown.
    */
   aliases: string[] | null;
+  /**
+   * Seconds this one card is worth, in milliseconds. Null — the default —
+   * means the card uses `game_settings.question_time_ms` like every other.
+   */
+  time_limit_ms: number | null;
 }
 
 export interface Player {
@@ -95,6 +114,11 @@ export interface LiveState {
   total_in_round: number;
   server_now: string;
   deadline_at: string | null;
+  /**
+   * How long the current phase runs in total, so the bottle timer can draw a
+   * level rather than a bare countdown. Null when the phase has no clock.
+   */
+  phase_ms: number | null;
   card: GameCard | null;
   /** What this player picked, echoed back so a refresh keeps them locked in. */
   my_guess: string | null;

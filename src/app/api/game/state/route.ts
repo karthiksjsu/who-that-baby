@@ -5,7 +5,7 @@ import { getGuessesForPlayer } from "@/lib/db/guesses";
 import { getPlayerByToken } from "@/lib/db/players";
 import { getGameSettings, positionOf } from "@/lib/db/settings";
 import { buildChoices } from "@/lib/game/distractors";
-import { deadlineMs } from "@/lib/game/schedule";
+import { deadlineMs, phaseDurationMs, timingsOf } from "@/lib/game/schedule";
 import type { LiveState } from "@/types/db";
 
 /**
@@ -50,10 +50,19 @@ export const GET = apiRoute(async (request) => {
   const startedAt = settings.phase_started_at
     ? Date.parse(settings.phase_started_at)
     : null;
-  const deadline = deadlineMs(pos.phase, startedAt);
 
   const baby =
     pos.phase === "question" || pos.phase === "reveal" ? babies[pos.index] ?? null : null;
+
+  /*
+   * The deadline has to be computed from the card that is actually up, so this
+   * is resolved after `baby` rather than before it. `phase_ms` rides along
+   * because the bottle timer draws a fraction of the phase, not a countdown —
+   * without knowing the total it cannot tell a full bottle from an empty one.
+   */
+  const timings = timingsOf(settings);
+  const deadline = deadlineMs(pos.phase, startedAt, timings, baby?.time_limit_ms);
+  const phaseMs = phaseDurationMs(pos.phase, timings, baby?.time_limit_ms);
 
   // Distractors are seeded off the baby alone, not the player. In a
   // synchronized game everyone is answering the same question at the same
@@ -103,6 +112,7 @@ export const GET = apiRoute(async (request) => {
     total_in_round: babies.length,
     server_now: new Date().toISOString(),
     deadline_at: deadline === null ? null : new Date(deadline).toISOString(),
+    phase_ms: phaseMs,
     card,
     my_guess: myGuess,
     correct_name: pos.phase === "reveal" && baby ? baby.correct_name : null,

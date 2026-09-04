@@ -5,7 +5,8 @@ import type { GameSettings } from "@/types/db";
 import type { Position } from "@/lib/game/schedule";
 
 const COLUMNS =
-  "status, winner_revealed, choices_count, current_round, current_index, phase, phase_started_at";
+  "status, winner_revealed, choices_count, current_round, current_index, phase, " +
+  "phase_started_at, question_time_ms, reveal_ms, intermission_ms";
 
 export async function getGameSettings(): Promise<GameSettings> {
   const { data, error } = await supabaseAdmin()
@@ -18,7 +19,17 @@ export async function getGameSettings(): Promise<GameSettings> {
 }
 
 export async function updateGameSettings(
-  patch: Partial<Pick<GameSettings, "status" | "winner_revealed" | "choices_count">>
+  patch: Partial<
+    Pick<
+      GameSettings,
+      | "status"
+      | "winner_revealed"
+      | "choices_count"
+      | "question_time_ms"
+      | "reveal_ms"
+      | "intermission_ms"
+    >
+  >
 ): Promise<GameSettings> {
   const { data, error } = await supabaseAdmin()
     .from("game_settings")

@@ -27,6 +27,26 @@ export async function countBabies(round: GameRound): Promise<number> {
   return count ?? 0;
 }
 
+/**
+ * The single card at `index` within a round, in the same display order
+ * `listBabies` uses.
+ *
+ * Exists so the advance endpoint can read one card's answer clock without
+ * pulling the whole round. Every phone in the room calls advance on every tick
+ * of its countdown, so that path stays as narrow as it can.
+ */
+export async function getBabyAt(round: GameRound, index: number): Promise<Baby | null> {
+  if (!Number.isInteger(index) || index < 0) return null;
+  const { data, error } = await supabaseAdmin()
+    .from("babies")
+    .select("*")
+    .eq("round", round)
+    .order("display_order", { ascending: true })
+    .range(index, index);
+  if (error) throw dbError(error, "babies");
+  return (data?.[0] as Baby | undefined) ?? null;
+}
+
 export async function createBaby(input: {
   photo_url: string;
   correct_name: string;
@@ -55,6 +75,7 @@ export async function updateBaby(
       | "display_order"
       | "distractors"
       | "aliases"
+      | "time_limit_ms"
     >
   >
 ): Promise<Baby> {

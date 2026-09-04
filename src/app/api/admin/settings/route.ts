@@ -29,7 +29,42 @@ export const GET = apiRoute(async () => {
 
 export const PATCH = apiRoute(async (request) => {
   const body = await request.json().catch(() => ({}));
-  const patch: { status?: GameStatus; winner_revealed?: boolean } = {};
+  const patch: {
+    status?: GameStatus;
+    winner_revealed?: boolean;
+    question_time_ms?: number;
+    reveal_ms?: number;
+    intermission_ms?: number;
+  } = {};
+
+  /*
+   * Bounds are enforced in the database too, by check constraints in migration
+   * 0010. Repeating them is not redundant: a violated constraint surfaces as an
+   * opaque 500, and a host adjusting timings mid-party deserves to be told the
+   * number was out of range rather than that something broke.
+   */
+  const LIMITS = {
+    question_time_ms: [3_000, 300_000],
+    reveal_ms: [1_000, 60_000],
+    intermission_ms: [1_000, 120_000],
+  } as const;
+
+  for (const key of ["question_time_ms", "reveal_ms", "intermission_ms"] as const) {
+    if (body[key] === undefined) continue;
+    const value = body[key];
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return NextResponse.json({ error: `${key} must be a number.` }, { status: 400 });
+    }
+    const [min, max] = LIMITS[key];
+    const rounded = Math.round(value);
+    if (rounded < min || rounded > max) {
+      return NextResponse.json(
+        { error: `${key} must be between ${min / 1000}s and ${max / 1000}s.` },
+        { status: 400 }
+      );
+    }
+    patch[key] = rounded;
+  }
 
   if (typeof body.status === "string") {
     if (!VALID_STATUSES.includes(body.status as GameStatus)) {

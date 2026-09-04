@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { apiRoute } from "@/lib/api/handler";
-import { countBabies } from "@/lib/db/babies";
+import { countBabies, getBabyAt } from "@/lib/db/babies";
 import { advancePosition, getGameSettings, positionOf } from "@/lib/db/settings";
 import { DEADLINE_GRACE_MS } from "@/lib/game/constants";
-import { deadlineMs, nextPosition } from "@/lib/game/schedule";
+import { deadlineMs, nextPosition, timingsOf } from "@/lib/game/schedule";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { GAME_STATE_CHANNEL, GAME_STATE_EVENT } from "@/lib/realtime/channels";
 
@@ -35,7 +35,13 @@ export const POST = apiRoute(async (request) => {
   const startedAt = settings.phase_started_at
     ? Date.parse(settings.phase_started_at)
     : null;
-  const deadline = deadlineMs(pos.phase, startedAt);
+  /*
+   * Only the question phase can be lengthened by an individual card, so only
+   * that phase pays for the extra read. Reveal and intermission run on the
+   * game-wide numbers and need nothing beyond the settings row already in hand.
+   */
+  const card = pos.phase === "question" ? await getBabyAt(pos.round, pos.index) : null;
+  const deadline = deadlineMs(pos.phase, startedAt, timingsOf(settings), card?.time_limit_ms);
   if (deadline === null) {
     return NextResponse.json({ advanced: false, reason: "no-deadline" });
   }

@@ -12,10 +12,12 @@ import {
   Crop,
   ListChecks,
   SpellCheck,
+  Timer,
   Trash2,
   TriangleAlert,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PhotoCropper } from "@/components/admin/PhotoCropper";
 import { buildChoices } from "@/lib/game/distractors";
 import { normalize, suggestAliases } from "@/lib/game/aliases";
@@ -30,6 +32,7 @@ export function BabyList({
   showAliases,
   allNames,
   choicesCount,
+  defaultQuestionMs,
   onChange,
   onMoveRound,
 }: {
@@ -47,6 +50,8 @@ export function BabyList({
   /** Every baby's name, including the ones in the other round. */
   allNames: string[];
   choicesCount: number;
+  /** Shown as the inherited value on cards that have no clock of their own. */
+  defaultQuestionMs: number;
   onChange: (babies: Baby[]) => void;
   onMoveRound: (id: string) => void;
 }) {
@@ -57,10 +62,10 @@ export function BabyList({
   /** At most one panel is open at a time — the rows are small. */
   const [panel, setPanel] = useState<{
     id: string;
-    kind: "frame" | "options" | "aliases";
+    kind: "frame" | "options" | "aliases" | "timer";
   } | null>(null);
 
-  function togglePanel(id: string, kind: "frame" | "options" | "aliases") {
+  function togglePanel(id: string, kind: "frame" | "options" | "aliases" | "timer") {
     setPanel((prev) => (prev?.id === id && prev.kind === kind ? null : { id, kind }));
   }
 
@@ -163,6 +168,28 @@ export function BabyList({
     }
   }
 
+  async function saveTimeLimit(baby: Baby, time_limit_ms: number | null) {
+    setBusyId(baby.id);
+    try {
+      const res = await fetch(`/api/admin/babies/${baby.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ time_limit_ms }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Couldn't save that timer.");
+      onChange(babies.map((b) => (b.id === baby.id ? (data.baby as Baby) : b)));
+      setPanel(null);
+      toast.success(
+        time_limit_ms ? `This card now gets ${Math.round(time_limit_ms / 1000)}s.` : "Back to the default timer."
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't save that timer.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function saveAliases(baby: Baby, aliases: string[] | null) {
     setBusyId(baby.id);
     try {
@@ -246,6 +273,11 @@ export function BabyList({
                     Also accepts: {baby.aliases.join(", ")}
                   </span>
                 ) : null}
+                {baby.time_limit_ms != null ? (
+                  <span className="truncate text-xs text-muted-foreground">
+                    Answer time: {Math.round(baby.time_limit_ms / 1000)}s
+                  </span>
+                ) : null}
               </button>
             )}
 
@@ -302,6 +334,20 @@ export function BabyList({
                       <SpellCheck className="size-4" />
                     </Button>
                   )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Answer time"
+                    onClick={() => togglePanel(baby.id, "timer")}
+                  >
+                    <Timer
+                      className={cn(
+                        "size-4",
+                        baby.time_limit_ms != null && "text-primary"
+                      )}
+                    />
+                  </Button>
                   <Button
                     type="button"
                     variant="ghost"
@@ -374,6 +420,16 @@ export function BabyList({
               busy={busyId === baby.id}
               onCancel={() => setPanel(null)}
               onSave={(aliases) => saveAliases(baby, aliases)}
+            />
+          )}
+
+          {panel?.id === baby.id && panel.kind === "timer" && (
+            <TimerEditor
+              baby={baby}
+              defaultQuestionMs={defaultQuestionMs}
+              busy={busyId === baby.id}
+              onCancel={() => setPanel(null)}
+              onSave={(ms) => saveTimeLimit(baby, ms)}
             />
           )}
         </li>
@@ -697,6 +753,107 @@ function AnswersEditor({
           onClick={() => onSave(null)}
         >
           Exact name only
+        </Button>
+        <Button type="button" variant="ghost" className="h-9" disabled={busy} onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Answer clocks offered as one tap each, in seconds. */
+const TIMER_PRESETS = [10, 15, 20, 30, 45, 60, 90];
+
+/**
+ * Gives one card its own answer clock.
+ *
+ * Presets rather than a free number box, because this gets used while a party
+ * is happening and the difference between 30 and 32 seconds is not worth
+ * anyone's attention. The exact field is still there for the host who wants
+ * it, but nobody has to touch it to get a sensible answer.
+ */
+function TimerEditor({
+  baby,
+  defaultQuestionMs,
+  busy,
+  onCancel,
+  onSave,
+}: {
+  baby: Baby;
+  defaultQuestionMs: number;
+  busy: boolean;
+  onCancel: () => void;
+  onSave: (ms: number | null) => void;
+}) {
+  const inherited = Math.round(defaultQuestionMs / 1000);
+  const [seconds, setSeconds] = useState<number>(
+    () => Math.round((baby.time_limit_ms ?? defaultQuestionMs) / 1000)
+  );
+  const valid = Number.isFinite(seconds) && seconds >= 3 && seconds <= 300;
+
+  return (
+    <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-sm font-medium">Answer time for this photo</p>
+        <p className="shrink-0 text-xs text-muted-foreground">
+          {baby.time_limit_ms == null ? `Using default (${inherited}s)` : "Custom"}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {TIMER_PRESETS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            disabled={busy}
+            onClick={() => setSeconds(s)}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-sm",
+              seconds === s
+                ? "bg-primary font-medium text-primary-foreground"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {s}s
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          min={3}
+          max={300}
+          value={Number.isFinite(seconds) ? seconds : ""}
+          disabled={busy}
+          onChange={(e) => setSeconds(Number(e.target.value))}
+          className="h-9 w-24"
+        />
+        <span className="text-xs text-muted-foreground">seconds (3–300)</span>
+      </div>
+
+      {!valid && (
+        <p className="text-xs text-destructive">Pick something between 3 and 300 seconds.</p>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          className="h-9"
+          disabled={busy || !valid}
+          onClick={() => onSave(Math.round(seconds * 1000))}
+        >
+          {busy ? "Saving…" : "Save timer"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9"
+          disabled={busy || baby.time_limit_ms == null}
+          onClick={() => onSave(null)}
+        >
+          Use default ({inherited}s)
         </Button>
         <Button type="button" variant="ghost" className="h-9" disabled={busy} onClick={onCancel}>
           Cancel

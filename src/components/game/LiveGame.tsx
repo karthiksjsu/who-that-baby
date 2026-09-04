@@ -102,6 +102,10 @@ export function LiveGame({ token }: { token: string }) {
             // Remounts per phase so the bottle refills for each new card.
             key={`${state.round}:${state.index}:${state.phase}`}
             deadlineAt={deadlineLocal}
+            // The bottle draws a level, not a countdown, so it needs the
+            // phase's full length — which is no longer a constant now that a
+            // card can be given its own clock.
+            durationMs={state.phase_ms ?? undefined}
             running={!revealing}
           />
         )}

@@ -18,12 +18,15 @@ export const POINTS_PER_ROUND: Record<GameRound, number> = {
  * Response time no longer affects the score, but it is still recorded: the
  * leaderboard view orders by `score desc, total_time_ms asc`, so answering
  * quickly is what separates two players on the same number of right answers.
+ *
+ * The cap has to be the clock that card actually ran on, not a fixed 30
+ * seconds. Once a host can give one card ninety, a fixed cap would record
+ * every answer past thirty as exactly thirty, and the tiebreaker would call a
+ * 35-second answer and an 85-second answer equally fast.
  */
-const MAX_RESPONSE_TIME_MS = QUESTION_TIME_MS;
-
-export function clampResponseTime(ms: number): number {
+export function clampResponseTime(ms: number, limitMs: number = QUESTION_TIME_MS): number {
   if (!Number.isFinite(ms) || ms < 0) return 0;
-  return Math.min(ms, MAX_RESPONSE_TIME_MS);
+  return Math.min(ms, limitMs);
 }
 
 /** Flat points for a correct answer in that round. Wrong or unanswered = 0. */

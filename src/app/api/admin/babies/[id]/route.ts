@@ -13,6 +13,7 @@ export const PATCH = apiRoute(
       round?: GameRound;
       distractors?: string[] | null;
       aliases?: string[] | null;
+      time_limit_ms?: number | null;
     } = {};
     if (typeof body.correct_name === "string" && body.correct_name.trim()) {
       patch.correct_name = body.correct_name.trim();
@@ -46,6 +47,19 @@ export const PATCH = apiRoute(
       patch.aliases = names.length ? Array.from(new Set(names)) : null;
     } else if (body.aliases === null) {
       patch.aliases = null;
+    }
+    // Null is "use the game default", which is how the field is cleared.
+    if (body.time_limit_ms === null) {
+      patch.time_limit_ms = null;
+    } else if (typeof body.time_limit_ms === "number") {
+      const ms = Math.round(body.time_limit_ms);
+      if (!Number.isFinite(ms) || ms < 3_000 || ms > 300_000) {
+        return NextResponse.json(
+          { error: "Answer time must be between 3s and 300s." },
+          { status: 400 }
+        );
+      }
+      patch.time_limit_ms = ms;
     }
     const baby = await updateBaby(id, patch);
     return NextResponse.json({ baby });

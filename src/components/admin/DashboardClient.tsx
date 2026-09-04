@@ -5,8 +5,11 @@ import { toast } from "sonner";
 import { BabyForm } from "@/components/admin/BabyForm";
 import { BabyList } from "@/components/admin/BabyList";
 import { ResetGameButton } from "@/components/admin/ResetGameButton";
+import { OptionDistribution } from "@/components/admin/OptionDistribution";
 import { StatusToggle } from "@/components/admin/StatusToggle";
-import type { Baby, GameSettings } from "@/types/db";
+import { TimingsPanel } from "@/components/admin/TimingsPanel";
+import { timingsOf } from "@/lib/game/schedule";
+import type { Baby, GameSettings, Timings } from "@/types/db";
 
 export function DashboardClient({
   initialBabies,
@@ -17,6 +20,7 @@ export function DashboardClient({
 }) {
   const [babies, setBabies] = useState(initialBabies);
   const [status, setStatus] = useState(initialSettings.status);
+  const [timings, setTimings] = useState<Timings>(() => timingsOf(initialSettings));
 
   const mcqBabies = babies.filter((b) => b.round === "choice");
   const bonusBabies = babies.filter((b) => b.round === "bonus");
@@ -57,6 +61,10 @@ export function DashboardClient({
         <ResetGameButton onReset={setStatus} />
       </div>
 
+      <TimingsPanel initial={timings} onSaved={(s) => setTimings(timingsOf(s))} />
+
+      <OptionDistribution babies={babies} choicesCount={initialSettings.choices_count} />
+
       <section className="flex flex-col gap-4">
         <div>
           <h2 className="font-display text-xl font-bold">🎯 Crawl round · multiple choice</h2>
@@ -82,6 +90,7 @@ export function DashboardClient({
             showOptions
             allNames={allNames}
             choicesCount={initialSettings.choices_count}
+            defaultQuestionMs={timings.question_time_ms}
             onChange={(next) => replaceGroup("choice", next)}
             onMoveRound={(id) => moveRound(id, "bonus")}
           />
@@ -109,6 +118,7 @@ export function DashboardClient({
             showAliases
             allNames={allNames}
             choicesCount={initialSettings.choices_count}
+            defaultQuestionMs={timings.question_time_ms}
             onChange={(next) => replaceGroup("bonus", next)}
             onMoveRound={(id) => moveRound(id, "choice")}
           />
